@@ -1,18 +1,15 @@
 {
   "compilerOptions": {
-    "jsx": "react",
-    "target": "ESNext",
-    "lib": ["DOM", "ESNext"],
+    "target": "ES2017",
     "module": "ESNext",
-    "moduleResolution": "node",
-    "strict": true,
+    "lib": ["DOM", "ES2017"],
+    "types": ["@figma/plugin-typings"],
+    "moduleResolution": "Node",
+    "outDir": "dist",
+    "jsx": "react-jsx",
     "esModuleInterop": true,
-    "skipLibCheck": true,
-    "typeRoots": [
-      "./node_modules/@types",
-      "./node_modules/@figma",
-      "./node_modules/@figma/plugin-typings"
-    ]
+    "strict": true,
+    "skipLibCheck": true
   },
-  "include": ["./code.ts", "./ui", "./vite.config.ts"]
+  "include": ["src/code.ts", "src/ui/**/*"]
 }
