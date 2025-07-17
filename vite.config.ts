@@ -1,17 +1,13 @@
-// vite.config.ts
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
-import { resolve } from 'node:path';
 
 export default defineConfig({
-  root: 'ui',
-  base: './',
   build: {
-    outDir: '../dist',
-    emptyOutDir: true,
+    outDir: 'dist',
+    emptyOutDir: false,
     rollupOptions: {
-      input: resolve(__dirname, 'ui/index.html'),
-    },
+      input: 'src/ui/index.html'
+    }
   },
-  plugins: [react()],
+  plugins: [react()]
 });
