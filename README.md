@@ -2,7 +2,7 @@ Below are the steps to get your plugin running. You can also find instructions a
 
   https://www.figma.com/plugin-docs/plugin-quickstart-guide/
 
-This plugin template uses Typescript and NPM, two standard tools in creating JavaScript applications.
+This plugin template uses Typescript and NPM, two standard tools in creating JavaScript applications. It also relies on React and Vite for the plugin UI.
 
 First, download Node.js which comes with NPM. This will allow you to install TypeScript and other
 libraries. You can find the download link here:
@@ -38,3 +38,14 @@ We recommend writing TypeScript code using Visual Studio code:
     you reopen Visual Studio Code.
 
 That's it! Visual Studio Code will regenerate the JavaScript file every time you save.
+
+### Building the plugin UI with Vite
+
+If you are using React and Vite for the UI, run the build command before testing the plugin in Figma:
+
+```
+npm install
+npm run build
+```
+
+The `npm run build` command compiles `code.ts` and bundles the React UI into the `dist/` folder. Figma reads `dist/index.html` as specified in `manifest.json`. If this file doesn't exist, Figma shows "an error occurred while loading the plugin environment" when you try to run the plugin.

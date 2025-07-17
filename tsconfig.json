@@ -14,5 +14,5 @@
       "./node_modules/@figma/plugin-typings"
     ]
   },
-  "include": ["./code.ts", "./ui"]
+  "include": ["./code.ts", "./ui", "./vite.config.ts"]
 }
