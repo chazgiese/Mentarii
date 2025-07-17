@@ -48,4 +48,11 @@ npm install
 npm run build
 ```
 
-The `npm run build` command compiles `code.ts` and bundles the React UI into the `dist/` folder. Figma reads `dist/index.html` as specified in `manifest.json`. If this file doesn't exist, Figma shows "an error occurred while loading the plugin environment" when you try to run the plugin.
+The `npm run build` command compiles `code.ts` and bundles the React UI into the `dist/` folder. This step generates `code.js` and `dist/index.html`, which Figma reads as specified in `manifest.json`. If these files don't exist, the React UI will not appear and Figma shows "an error occurred while loading the plugin environment" when you try to run the plugin.
+
+Make sure your `manifest.json` points to the built files, for example:
+
+```
+"main": "code.js",
+"ui": "dist/index.html"
+```
