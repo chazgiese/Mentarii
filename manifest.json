@@ -1,7 +1,0 @@
-{
-  "name": "Mentarii Figma Plugin",
-  "api": "1.0.0",
-  "main": "dist/code.js",
-  "ui": "dist/index.html",
-  "id": "com.example.mentarii"
-}
