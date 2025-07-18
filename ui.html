@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body {
+      font-family: Inter, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    
+    .container {
+      background: white;
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    h2 {
+      margin: 0 0 20px 0;
+      color: #333;
+      font-size: 18px;
+      font-weight: 600;
+    }
+    
+    .button {
+      display: block;
+      width: 100%;
+      padding: 12px 16px;
+      margin-bottom: 12px;
+      background: #18A0FB;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    
+    .button:hover {
+      background: #0D8DE3;
+    }
+    
+    .button:active {
+      background: #0B7BC7;
+    }
+    
+    .description {
+      color: #666;
+      font-size: 12px;
+      margin-top: 16px;
+      line-height: 1.4;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Figma Plugin Boilerplate</h2>
+    
+    <button class="button" id="create-rectangle">
+      Create Rectangle
+    </button>
+    
+    <button class="button" id="create-circle">
+      Create Circle
+    </button>
+    
+    <button class="button" id="create-text">
+      Create Text
+    </button>
+    
+    <div class="description">
+      This is a simple Figma plugin boilerplate using vanilla JavaScript. 
+      Click the buttons above to create different elements on your canvas.
+    </div>
+  </div>
+
+  <script>
+    document.getElementById('create-rectangle').onclick = () => {
+      parent.postMessage({ pluginMessage: { type: 'create-rectangle' } }, '*');
+    };
+    
+    document.getElementById('create-circle').onclick = () => {
+      parent.postMessage({ pluginMessage: { type: 'create-circle' } }, '*');
+    };
+    
+    document.getElementById('create-text').onclick = () => {
+      parent.postMessage({ pluginMessage: { type: 'create-text' } }, '*');
+    };
+  </script>
+</body>
+</html> 

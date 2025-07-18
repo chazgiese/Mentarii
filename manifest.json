@@ -1,0 +1,8 @@
+{
+  "name": "Figma Plugin Boilerplate",
+  "id": "figma-plugin-boilerplate",
+  "api": "1.0.0",
+  "main": "dist/code.js",
+  "ui": "ui.html",
+  "editorType": ["figma"]
+} 
