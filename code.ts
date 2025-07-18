@@ -1,32 +1,60 @@
 /// <reference types="@figma/plugin-typings" />
 
-figma.showUI(__html__, { width: 400, height: 500 });
+figma.showUI(__html__, { 
+  width: 400, 
+  height: 500,
+  themeColors: true
+});
+
+// Function to update selection count in UI
+function updateSelectionCount() {
+  const count = figma.currentPage.selection.length;
+  figma.ui.postMessage({
+    type: 'selection-update',
+    count: count
+  });
+}
+
+// Listen for selection changes
+figma.on('selectionchange', () => {
+  updateSelectionCount();
+});
 
 figma.ui.onmessage = (msg) => {
-  if (msg.type === 'create-rectangle') {
-    const rect = figma.createRectangle();
-    rect.x = 150;
-    rect.y = 150;
-    rect.resize(100, 100);
-    figma.currentPage.appendChild(rect);
-    figma.notify('Rectangle created!');
+  if (msg.type === 'get-selection-count') {
+    updateSelectionCount();
   }
   
-  if (msg.type === 'create-circle') {
-    const circle = figma.createEllipse();
-    circle.x = 300;
-    circle.y = 150;
-    circle.resize(100, 100);
-    figma.currentPage.appendChild(circle);
-    figma.notify('Circle created!');
+  if (msg.type === 'save-api-key') {
+    // Save API key to Figma's client storage
+    figma.clientStorage.setAsync('openai-api-key', msg.apiKey);
+    console.log('API key saved');
   }
   
-  if (msg.type === 'create-text') {
-    const text = figma.createText();
-    text.x = 150;
-    text.y = 300;
-    text.characters = "Hello from Figma Plugin!";
-    figma.currentPage.appendChild(text);
-    figma.notify('Text created!');
+  if (msg.type === 'get-api-key') {
+    // Retrieve API key from Figma's client storage
+    figma.clientStorage.getAsync('openai-api-key').then((apiKey) => {
+      if (apiKey) {
+        figma.ui.postMessage({
+          type: 'api-key-loaded',
+          apiKey: apiKey
+        });
+      }
+    });
+  }
+  
+  if (msg.type === 'send-chat-message') {
+    // Handle AI chat message
+    console.log('Chat message received:', msg.message);
+    
+    // TODO: Add AI integration here
+    // For now, just acknowledge the message
+    figma.ui.postMessage({
+      type: 'chat-response',
+      success: true,
+      message: `Received: ${msg.message}`
+    });
+    
+    figma.notify(`AI Chat: ${msg.message}`);
   }
 }; 
