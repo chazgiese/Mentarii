@@ -114,15 +114,24 @@
       border-radius: 6px;
       font-size: 14px;
       font-family: Inter, sans-serif;
-      resize: none;
       min-height: 40px;
-      max-height: none;
+      max-height: 200px;
+      overflow-y: auto;
+      word-wrap: break-word;
+      white-space: pre-wrap;
+      outline: none;
     }
     
     .chat-input:focus {
       outline: none;
       border-color: #18A0FB;
       box-shadow: 0 0 0 2px rgba(24, 160, 251, 0.1);
+    }
+    
+    .chat-input[data-placeholder]:empty:before {
+      content: attr(data-placeholder);
+      color: #999;
+      pointer-events: none;
     }
     
     .send-button {
@@ -332,12 +341,12 @@
       </div>
       
       <div class="chat-input-container">
-        <textarea 
+        <div 
           class="chat-input" 
           id="chat-input" 
-          placeholder="Type your message here..."
-          rows="2"
-        ></textarea>
+          contenteditable="true"
+          data-placeholder="Type your message here..."
+        ></div>
         <button class="send-button" id="send-button" disabled>
           Send
         </button>
@@ -418,7 +427,7 @@
     
     // Update send button state based on input content
     function updateSendButton() {
-      const hasContent = chatInput.value.trim().length > 0;
+      const hasContent = chatInput.textContent.trim().length > 0;
       sendButton.disabled = !hasContent || sendButton.classList.contains('loading');
     }
     
@@ -447,12 +456,23 @@
       updateSendButton();
     }
     
+    // Auto-resize function for contenteditable
+    function autoResize() {
+      chatInput.style.height = 'auto';
+      const scrollHeight = chatInput.scrollHeight;
+      const maxHeight = 200; // matches CSS max-height
+      chatInput.style.height = Math.min(scrollHeight, maxHeight) + 'px';
+    }
+    
     // Handle input changes
-    chatInput.addEventListener('input', updateSendButton);
+    chatInput.addEventListener('input', () => {
+      updateSendButton();
+      autoResize();
+    });
     
     // Handle send button click
     sendButton.addEventListener('click', () => {
-      const message = chatInput.value.trim();
+      const message = chatInput.textContent.trim();
       if (message && !sendButton.classList.contains('loading')) {
         setLoading(true);
         clearResponse();
@@ -464,7 +484,7 @@
           } 
         }, '*');
         
-        chatInput.value = '';
+        chatInput.textContent = '';
         updateSendButton();
       }
     });
@@ -476,6 +496,9 @@
         sendButton.click();
       }
     });
+    
+    // Initialize the input height
+    autoResize();
     
     // Selection counter display updates
     const selectionBanner = document.getElementById('selection-banner');

@@ -249,9 +249,6 @@ async function replaceSelectedTextElements(items: any[]) {
   if (!hasAccess) {
     throw new Error('No access to current page');
   }
-
-  // Load the font first
-  await figma.loadFontAsync({ family: "Inter", style: "Regular" });
   
   const selection = figma.currentPage.selection;
   const textElements = selection.filter(node => node.type === 'TEXT') as TextNode[];
@@ -277,7 +274,11 @@ async function replaceSelectedTextElements(items: any[]) {
     // Convert item to string
     const itemText = typeof item === 'string' ? item : JSON.stringify(item);
     
-    // Replace the text content
+    // Load the font that the text element is currently using
+    const currentFont = textElement.fontName as FontName;
+    await figma.loadFontAsync(currentFont);
+    
+    // Replace the text content while preserving the existing font style
     textElement.characters = itemText;
   }
   
