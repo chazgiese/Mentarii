@@ -1,16 +1,21 @@
-# Figma Plugin with ChatGPT Integration
+# Mentarii - AI Ghostwriter for Figma
 
-A Figma plugin that integrates with OpenAI's ChatGPT API to generate AI-powered text content directly in your Figma designs.
+An AI-powered ghostwriter plugin for Figma that generates text content using OpenAI's ChatGPT API. Named after "Commentarii de Bello Gallico" by Julius Caesar, the first notable work thought to be ghostwritten.
+
+## The Story Behind the Name
+
+**Mentarii** (Latin: "commentaries" or "memoirs") draws inspiration from Julius Caesar's "Commentarii de Bello Gallico" - one of the first significant works believed to be ghostwritten. Just as Caesar's commentaries were crafted to present his campaigns in the most favorable light, Mentarii helps you craft the perfect text content for your designs.
 
 ## Features
 
-- ✅ **ChatGPT Integration** - Send messages to OpenAI's API and get AI responses
+- ✅ **AI Ghostwriting** - Generate text content with ChatGPT integration
+- ✅ **Smart Text Replacement** - Replace selected text elements with AI-generated content
+- ✅ **Precise Item Matching** - AI generates exactly the number of items you need
 - ✅ **Secure API Key Storage** - API keys stored locally in Figma's client storage
 - ✅ **Configurable AI Settings** - Adjust model, temperature, and token limits
-- ✅ **Text Element Creation** - AI responses automatically added as text elements in Figma
-- ✅ **Real-time UI Feedback** - Loading states and error handling
+- ✅ **Position-Aware Replacement** - Maintains visual layout when replacing multiple elements
 - ✅ **TypeScript Support** - Type safety with Figma plugin typings
-- ✅ **Clean, Modern UI** - Simple interface with accordion sections for settings
+- ✅ **Clean, Modern UI** - Simple interface with organized settings
 
 ## Setup
 
@@ -33,20 +38,25 @@ A Figma plugin that integrates with OpenAI's ChatGPT API to generate AI-powered 
    - Go to Plugins → Development → "Import plugin from manifest..."
    - Select the `manifest.json` file
    - Run the plugin
-   - Click "API Key" to expand the settings
+   - Click "Settings" to expand the configuration
    - Paste your OpenAI API key
    - The key is stored securely in Figma's client storage
 
 ## Usage
 
-1. **Set up your API key** in the "API Key" section
-2. **Configure AI settings** in the "AI Settings" section:
-   - **Model**: Choose between GPT-3.5 Turbo, GPT-4, or GPT-4 Turbo
-   - **Temperature**: Controls creativity (0 = focused, 2 = very creative)
-   - **Max Tokens**: Maximum length of AI responses
-3. **Type your message** in the chat input
+### Basic Text Generation
+1. **Set up your API key** in the Settings section
+2. **Configure AI settings** (model, temperature, max tokens)
+3. **Type your prompt** in the chat input
 4. **Click Send** or press Enter
-5. **AI response** will be automatically added as a text element in your Figma canvas
+5. **AI response** will be added as a new text element in your Figma canvas
+
+### Smart Text Replacement
+1. **Select existing text elements** on your canvas
+2. **Ask for a list or multiple items** (e.g., "a list of dates in descending order")
+3. **AI generates exactly the right number** of items to match your selection
+4. **Each selected text element** gets replaced with a corresponding item
+5. **Order is preserved** based on the position of your selected elements
 
 ## AI Configuration
 
@@ -64,6 +74,23 @@ A Figma plugin that integrates with OpenAI's ChatGPT API to generate AI-powered 
 - **1000**: Good for most responses (default)
 - **2000+**: For longer, more detailed responses
 - **4000**: Maximum allowed
+
+## Smart Features
+
+### Intelligent Item Matching
+- **Counts selected text elements** automatically
+- **Instructs AI to generate exactly** the right number of items
+- **Handles insufficient responses** gracefully with fallback behavior
+
+### Position-Aware Replacement
+- **Sorts elements by position** (top to bottom, left to right)
+- **Maintains visual layout** when replacing multiple elements
+- **Uses 10px tolerance** for grouping elements on the same line
+
+### Response Format
+- **JSON-only responses** from ChatGPT
+- **Clean array output** without wrapper objects
+- **Automatic content extraction** for display
 
 ## Security
 
@@ -93,7 +120,7 @@ The plugin integrates with OpenAI's Chat Completions API:
 
 - **Endpoint**: `https://api.openai.com/v1/chat/completions`
 - **Authentication**: Bearer token with your API key
-- **System Prompt**: Configured for concise, creative responses
+- **System Prompt**: Configured for JSON responses and item count matching
 - **Error Handling**: Comprehensive error messages for API issues
 
 ## Troubleshooting
@@ -103,6 +130,15 @@ The plugin integrates with OpenAI's Chat Completions API:
 - **Network Errors**: Check your internet connection
 - **Plugin not loading**: Run `npm run build` and reimport the manifest
 
+## Use Cases
+
+Mentarii is perfect for:
+- **UI/UX Design**: Generate placeholder text, labels, and content
+- **Content Creation**: Create headlines, descriptions, and copy
+- **Data Visualization**: Generate lists, categories, and labels
+- **Prototyping**: Quickly populate designs with realistic content
+- **Localization**: Generate content in different languages
+
 ## Next Steps
 
 This plugin provides a foundation for AI-powered design tools. You can extend it to:
@@ -110,4 +146,8 @@ This plugin provides a foundation for AI-powered design tools. You can extend it
 - Create content for UI mockups
 - Automate copywriting tasks
 - Build more sophisticated AI workflows
-- Integrate with other AI services 
+- Integrate with other AI services
+
+---
+
+*"I came, I saw, I designed" - Let Mentarii help you craft the perfect content for your designs.* 
