@@ -6,14 +6,14 @@
       font-family: Inter, sans-serif;
       margin: 0;
       padding: 20px;
+      padding-bottom: 40px;
       background-color: var(--figma-color-bg);
       color: var(--figma-color-text);
+      overflow-y: auto;
     }
     
     .container {
-      border-radius: 8px;
-      padding: 20px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      /* intentionally empty */
     }
     
     h2 {
@@ -210,7 +210,8 @@
     }
     
     .accordion-content.expanded {
-      max-height: 200px;
+      max-height: 300px;
+      overflow-y: auto;
     }
     
     .accordion-body {
@@ -262,6 +263,58 @@
       border: 1px solid #F5C6CB;
       display: block;
     }
+    
+    .response-area {
+      margin-top: 12px;
+      padding: 12px;
+      border-radius: 6px;
+      font-size: 14px;
+      line-height: 1.4;
+      display: none;
+    }
+    
+    .response-area.success {
+      background: #D4EDDA;
+      color: #155724;
+      border: 1px solid #C3E6CB;
+      display: block;
+    }
+    
+    .response-area.error {
+      background: #F8D7DA;
+      color: #721C24;
+      border: 1px solid #F5C6CB;
+      display: block;
+    }
+    
+    .response-area.loading {
+      background: #D1ECF1;
+      color: #0C5460;
+      border: 1px solid #BEE5EB;
+      display: block;
+    }
+    
+    .send-button.loading {
+      background: #6C757D;
+      cursor: not-allowed;
+    }
+    
+    .send-button.loading::after {
+      content: '';
+      display: inline-block;
+      width: 12px;
+      height: 12px;
+      border: 2px solid transparent;
+      border-top: 2px solid white;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-left: 8px;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
   </style>
 </head>
 <body>
@@ -289,6 +342,8 @@
           Send
         </button>
       </div>
+      
+      <div class="response-area" id="response-area"></div>
     </div>
     
     <div class="description">
@@ -298,22 +353,58 @@
     
     <div class="accordion">
       <div class="accordion-header" id="accordion-header">
-        <h3 class="accordion-title">API Key</h3>
+        <h3 class="accordion-title">Settings</h3>
         <svg class="accordion-icon" id="accordion-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <polyline points="6,9 12,15 18,9"></polyline>
         </svg>
       </div>
       <div class="accordion-content" id="accordion-content">
         <div class="accordion-body">
-          <label class="api-key-label" for="api-key-input">OpenAI API Key</label>
-          <input 
-            type="password" 
-            class="api-key-input" 
-            id="api-key-input" 
-            placeholder="sk-..."
-            autocomplete="off"
-          />
-          <div class="api-key-status" id="api-key-status"></div>
+          <div style="margin-bottom: 20px;">
+            <label class="api-key-label" for="api-key-input">OpenAI API Key</label>
+            <input 
+              type="password" 
+              class="api-key-input" 
+              id="api-key-input" 
+              placeholder="sk-..."
+              autocomplete="off"
+            />
+            <div class="api-key-status" id="api-key-status"></div>
+          </div>
+          
+          <div style="border-top: 1px solid #E5E5E5; padding-top: 20px; margin-bottom: 12px;">
+            <label class="api-key-label" for="model-select">Model</label>
+            <select class="api-key-input" id="model-select">
+              <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
+              <option value="gpt-4">GPT-4</option>
+              <option value="gpt-4-turbo">GPT-4 Turbo</option>
+            </select>
+          </div>
+          
+          <div style="margin-bottom: 12px;">
+            <label class="api-key-label" for="temperature-slider">Temperature: <span id="temperature-value">0.7</span></label>
+            <input 
+              type="range" 
+              id="temperature-slider" 
+              min="0" 
+              max="2" 
+              step="0.1" 
+              value="0.7"
+              style="width: 100%; margin-top: 4px;"
+            />
+          </div>
+          
+          <div style="margin-bottom: 12px;">
+            <label class="api-key-label" for="max-tokens-input">Max Tokens</label>
+            <input 
+              type="number" 
+              class="api-key-input" 
+              id="max-tokens-input" 
+              value="1000"
+              min="100"
+              max="4000"
+            />
+          </div>
         </div>
       </div>
     </div>
@@ -323,11 +414,37 @@
     // Chat functionality
     const chatInput = document.getElementById('chat-input');
     const sendButton = document.getElementById('send-button');
+    const responseArea = document.getElementById('response-area');
     
     // Update send button state based on input content
     function updateSendButton() {
       const hasContent = chatInput.value.trim().length > 0;
-      sendButton.disabled = !hasContent;
+      sendButton.disabled = !hasContent || sendButton.classList.contains('loading');
+    }
+    
+    // Show response in UI
+    function showResponse(message, type = 'success') {
+      responseArea.textContent = message;
+      responseArea.className = `response-area ${type}`;
+    }
+    
+    // Clear response
+    function clearResponse() {
+      responseArea.className = 'response-area';
+      responseArea.textContent = '';
+    }
+    
+    // Set loading state
+    function setLoading(loading) {
+      if (loading) {
+        sendButton.classList.add('loading');
+        sendButton.textContent = 'Sending...';
+        showResponse('🤔 Thinking...', 'loading');
+      } else {
+        sendButton.classList.remove('loading');
+        sendButton.textContent = 'Send';
+      }
+      updateSendButton();
     }
     
     // Handle input changes
@@ -336,13 +453,17 @@
     // Handle send button click
     sendButton.addEventListener('click', () => {
       const message = chatInput.value.trim();
-      if (message) {
+      if (message && !sendButton.classList.contains('loading')) {
+        setLoading(true);
+        clearResponse();
+        
         parent.postMessage({ 
           pluginMessage: { 
             type: 'send-chat-message',
             message: message 
           } 
         }, '*');
+        
         chatInput.value = '';
         updateSendButton();
       }
@@ -382,8 +503,20 @@
       
       if (event.data.pluginMessage && event.data.pluginMessage.type === 'chat-response') {
         // Handle chat response from plugin
-        console.log('Chat response:', event.data.pluginMessage.message);
-        // TODO: Display response in UI (could add a response area)
+        const response = event.data.pluginMessage;
+        setLoading(false);
+        
+        if (response.success) {
+          if (response.loading) {
+            showResponse(response.message, 'loading');
+          } else {
+            showResponse('✅ Response added to Figma canvas!', 'success');
+            // Clear the response after a few seconds
+            setTimeout(clearResponse, 3000);
+          }
+        } else {
+          showResponse('❌ ' + response.message, 'error');
+        }
       }
       
       if (event.data.pluginMessage && event.data.pluginMessage.type === 'api-key-loaded') {
@@ -391,6 +524,15 @@
         const savedApiKey = event.data.pluginMessage.apiKey;
         apiKeyInput.value = savedApiKey;
         updateApiKeyStatus(savedApiKey);
+      }
+      
+      if (event.data.pluginMessage && event.data.pluginMessage.type === 'config-loaded') {
+        // Load saved configuration into inputs
+        const config = event.data.pluginMessage.config;
+        modelSelect.value = config.model;
+        temperatureSlider.value = config.temperature;
+        temperatureValue.textContent = config.temperature;
+        maxTokensInput.value = config.max_tokens;
       }
     });
     
@@ -403,6 +545,12 @@
     const accordionIcon = document.getElementById('accordion-icon');
     const apiKeyInput = document.getElementById('api-key-input');
     const apiKeyStatus = document.getElementById('api-key-status');
+    
+    // Config controls
+    const modelSelect = document.getElementById('model-select');
+    const temperatureSlider = document.getElementById('temperature-slider');
+    const temperatureValue = document.getElementById('temperature-value');
+    const maxTokensInput = document.getElementById('max-tokens-input');
     
     let isAccordionExpanded = false;
     
@@ -418,6 +566,8 @@
         accordionIcon.classList.remove('expanded');
       }
     }
+    
+
     
     // Validate API key format
     function validateApiKey(key) {
@@ -452,8 +602,34 @@
       }, '*');
     }
     
+    // Save configuration to plugin
+    function saveConfig() {
+      const config = {
+        model: modelSelect.value,
+        temperature: parseFloat(temperatureSlider.value),
+        max_tokens: parseInt(maxTokensInput.value)
+      };
+      
+      parent.postMessage({ 
+        pluginMessage: { 
+          type: 'save-config',
+          config: config 
+        } 
+      }, '*');
+    }
+    
     // Event listeners
     accordionHeader.addEventListener('click', toggleAccordion);
+    
+    // Temperature slider
+    temperatureSlider.addEventListener('input', (e) => {
+      temperatureValue.textContent = e.target.value;
+    });
+    
+    // Config change handlers
+    modelSelect.addEventListener('change', saveConfig);
+    temperatureSlider.addEventListener('change', saveConfig);
+    maxTokensInput.addEventListener('change', saveConfig);
     
     apiKeyInput.addEventListener('input', (e) => {
       const key = e.target.value;
@@ -466,8 +642,9 @@
       }, 500);
     });
     
-    // Load saved API key from plugin
+    // Load saved API key and config from plugin
     parent.postMessage({ pluginMessage: { type: 'get-api-key' } }, '*');
+    parent.postMessage({ pluginMessage: { type: 'get-config' } }, '*');
   </script>
 </body>
 </html> 

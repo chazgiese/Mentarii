@@ -1,14 +1,16 @@
-# Figma Plugin Boilerplate
+# Figma Plugin with ChatGPT Integration
 
-A simple, clean Figma plugin boilerplate using vanilla JavaScript and TypeScript.
+A Figma plugin that integrates with OpenAI's ChatGPT API to generate AI-powered text content directly in your Figma designs.
 
 ## Features
 
-- ✅ **Vanilla JavaScript** - No complex build tools or frameworks
-- ✅ **TypeScript support** - Type safety with Figma plugin typings
-- ✅ **Clean UI** - Simple, modern interface
-- ✅ **Working examples** - Create rectangles, circles, and text
-- ✅ **Easy to extend** - Simple structure to build upon
+- ✅ **ChatGPT Integration** - Send messages to OpenAI's API and get AI responses
+- ✅ **Secure API Key Storage** - API keys stored locally in Figma's client storage
+- ✅ **Configurable AI Settings** - Adjust model, temperature, and token limits
+- ✅ **Text Element Creation** - AI responses automatically added as text elements in Figma
+- ✅ **Real-time UI Feedback** - Loading states and error handling
+- ✅ **TypeScript Support** - Type safety with Figma plugin typings
+- ✅ **Clean, Modern UI** - Simple interface with accordion sections for settings
 
 ## Setup
 
@@ -22,10 +24,52 @@ A simple, clean Figma plugin boilerplate using vanilla JavaScript and TypeScript
    npm run build
    ```
 
-3. In Figma:
+3. Get your OpenAI API key:
+   - Go to [OpenAI Platform](https://platform.openai.com/api-keys)
+   - Create a new API key
+   - Copy the key (starts with `sk-`)
+
+4. In Figma:
    - Go to Plugins → Development → "Import plugin from manifest..."
    - Select the `manifest.json` file
    - Run the plugin
+   - Click "API Key" to expand the settings
+   - Paste your OpenAI API key
+   - The key is stored securely in Figma's client storage
+
+## Usage
+
+1. **Set up your API key** in the "API Key" section
+2. **Configure AI settings** in the "AI Settings" section:
+   - **Model**: Choose between GPT-3.5 Turbo, GPT-4, or GPT-4 Turbo
+   - **Temperature**: Controls creativity (0 = focused, 2 = very creative)
+   - **Max Tokens**: Maximum length of AI responses
+3. **Type your message** in the chat input
+4. **Click Send** or press Enter
+5. **AI response** will be automatically added as a text element in your Figma canvas
+
+## AI Configuration
+
+### Models
+- **GPT-3.5 Turbo**: Fast and cost-effective for most tasks
+- **GPT-4**: More capable but slower and more expensive
+- **GPT-4 Turbo**: Latest model with improved performance
+
+### Temperature
+- **0.0**: Very focused, consistent responses
+- **0.7**: Balanced creativity (default)
+- **1.0+**: More creative and varied responses
+
+### Max Tokens
+- **1000**: Good for most responses (default)
+- **2000+**: For longer, more detailed responses
+- **4000**: Maximum allowed
+
+## Security
+
+- **Local Storage**: API keys are stored securely in Figma's client storage
+- **No Server Transmission**: API keys are never sent to any server except OpenAI's API
+- **Client-side Only**: All processing happens in your Figma environment
 
 ## Development
 
@@ -36,48 +80,34 @@ A simple, clean Figma plugin boilerplate using vanilla JavaScript and TypeScript
 ## File Structure
 
 ```
-├── code.ts              # Plugin entry point (Figma backend)
-├── ui.html              # Plugin UI (HTML + CSS + JS)
+├── code.ts              # Plugin entry point with ChatGPT integration
+├── ui.html              # Plugin UI with chat interface and settings
 ├── manifest.json        # Plugin manifest
 ├── dist/code.js         # Compiled JavaScript
 └── package.json         # Dependencies and scripts
 ```
 
-## How it Works
+## API Integration Details
 
-1. **code.ts** - Contains the Figma plugin logic that runs in the Figma environment
-2. **ui.html** - The user interface that appears in the plugin window
-3. **manifest.json** - Tells Figma how to load and run the plugin
+The plugin integrates with OpenAI's Chat Completions API:
 
-## Adding Features
-
-### New UI Elements
-Add buttons or inputs to `ui.html` and handle them in the `<script>` section.
-
-### New Plugin Actions
-Add new message handlers in `code.ts` to perform actions in Figma.
-
-### Styling
-Modify the CSS in `ui.html` to customize the appearance.
-
-## Example Usage
-
-The plugin currently includes three example actions:
-- **Create Rectangle** - Adds a 100x100 rectangle to the canvas
-- **Create Circle** - Adds a 100x100 circle to the canvas  
-- **Create Text** - Adds text saying "Hello from Figma Plugin!"
+- **Endpoint**: `https://api.openai.com/v1/chat/completions`
+- **Authentication**: Bearer token with your API key
+- **System Prompt**: Configured for concise, creative responses
+- **Error Handling**: Comprehensive error messages for API issues
 
 ## Troubleshooting
 
-- **Plugin not loading**: Make sure you've run `npm run build` and imported the manifest
-- **TypeScript errors**: Run `npm run typecheck` to see detailed error messages
-- **UI not showing**: Check that `ui.html` exists and is referenced correctly in `manifest.json`
+- **API Key Issues**: Make sure your key starts with `sk-` and is valid
+- **Rate Limits**: OpenAI has rate limits; wait a moment and try again
+- **Network Errors**: Check your internet connection
+- **Plugin not loading**: Run `npm run build` and reimport the manifest
 
 ## Next Steps
 
-This boilerplate provides a solid foundation for building Figma plugins. You can:
-- Add more UI components
-- Implement complex Figma operations
-- Add state management
-- Integrate with external APIs
-- Create more sophisticated designs 
+This plugin provides a foundation for AI-powered design tools. You can extend it to:
+- Generate design ideas and concepts
+- Create content for UI mockups
+- Automate copywriting tasks
+- Build more sophisticated AI workflows
+- Integrate with other AI services 
