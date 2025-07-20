@@ -107,11 +107,11 @@ An AI-powered ghostwriter plugin for Figma that generates text content using Ope
 ## File Structure
 
 ```
-├── code.ts              # Plugin entry point with ChatGPT integration
-├── ui.html              # Plugin UI with chat interface and settings
-├── manifest.json        # Plugin manifest
-├── dist/code.js         # Compiled JavaScript
-└── package.json         # Dependencies and scripts
+├── code.ts                  # Main plugin code (bundled)
+├── ui.html                  # Plugin UI with chat interface and settings
+├── manifest.json            # Plugin manifest
+├── dist/code.js             # Compiled JavaScript
+└── package.json             # Dependencies and scripts
 ```
 
 ## API Integration Details

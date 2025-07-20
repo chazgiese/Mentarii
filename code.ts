@@ -1,58 +1,10 @@
 /// <reference types="@figma/plugin-typings" />
 
-// Check if we have access to the current page
-async function ensurePageAccess() {
-  if (!figma.editorType) {
-    // We're not in an editor context
-    figma.notify('❌ This plugin requires an active Figma document');
-    return false;
-  }
+// ============================================================================
+// TYPES
+// ============================================================================
 
-  try {
-    // Check if we can access the current page
-    const currentPage = figma.currentPage;
-    if (!currentPage) {
-      figma.notify('❌ Unable to access current page');
-      return false;
-    }
-    return true;
-  } catch (error) {
-    console.error('Error accessing page:', error);
-    figma.notify('❌ Error accessing page');
-    return false;
-  }
-}
-
-figma.showUI(__html__, { 
-  width: 400, 
-  height: 500,
-  themeColors: true
-});
-
-// Function to update selection count in UI
-async function updateSelectionCount() {
-  const hasAccess = await ensurePageAccess();
-  if (!hasAccess) {
-    figma.ui.postMessage({
-      type: 'selection-update',
-      count: 0
-    });
-    return;
-  }
-
-  const count = figma.currentPage.selection.length;
-  figma.ui.postMessage({
-    type: 'selection-update',
-    count: count
-  });
-}
-
-// Listen for selection changes
-figma.on('selectionchange', async () => {
-  await updateSelectionCount();
-});
-
-// ChatGPT API configuration
+// ChatGPT API configuration interface
 interface ChatGPTConfig {
   model: string;
   temperature: number;
@@ -62,6 +14,30 @@ interface ChatGPTConfig {
   presence_penalty: number;
 }
 
+// ChatGPT API response interface
+interface ChatGPTResponse {
+  content: string;
+  isArray: boolean;
+  items: any[] | null;
+}
+
+// UI message types
+interface UIMessage {
+  type: string;
+  [key: string]: any;
+}
+
+// Plugin message types
+interface PluginMessage {
+  type: string;
+  [key: string]: any;
+}
+
+// ============================================================================
+// CHATGPT API
+// ============================================================================
+
+// Default ChatGPT configuration
 const defaultConfig: ChatGPTConfig = {
   model: "gpt-3.5-turbo",
   temperature: 0.7,
@@ -72,10 +48,15 @@ const defaultConfig: ChatGPTConfig = {
 };
 
 // Current configuration (can be updated by UI)
-let currentConfig: ChatGPTConfig = Object.assign({}, defaultConfig);
+let currentConfig: ChatGPTConfig = { ...defaultConfig };
 
 // Function to call ChatGPT API
-async function callChatGPT(apiKey: string, message: string, selectedTextCount: number = 0, config: ChatGPTConfig = currentConfig): Promise<{content: string, isArray: boolean, items: any[] | null}> {
+async function callChatGPT(
+  apiKey: string, 
+  message: string, 
+  selectedTextCount: number = 0, 
+  config: ChatGPTConfig = currentConfig
+): Promise<ChatGPTResponse> {
   try {
     // Create system prompt based on whether text elements are selected
     let systemPrompt = "You are a helpful assistant that responds ONLY with valid JSON. Do not include any text, markdown, or formatting outside of the JSON. If the user asks for a list or array, respond with just the JSON array (e.g., [\"item1\", \"item2\"]). If they ask for text content, include it in a 'content' field. If they ask for multiple items, use an array. Always respond with clean, valid JSON only. Do not wrap arrays in objects with field names unless specifically requested.";
@@ -195,6 +176,38 @@ async function callChatGPT(apiKey: string, message: string, selectedTextCount: n
   }
 }
 
+// Function to update the current configuration
+function updateConfig(newConfig: Partial<ChatGPTConfig>) {
+  currentConfig = Object.assign({}, defaultConfig, newConfig);
+}
+
+// ============================================================================
+// FIGMA OPERATIONS
+// ============================================================================
+
+// Check if we have access to the current page
+async function ensurePageAccess(): Promise<boolean> {
+  if (!figma.editorType) {
+    // We're not in an editor context
+    figma.notify('❌ This plugin requires an active Figma document');
+    return false;
+  }
+
+  try {
+    // Check if we can access the current page
+    const currentPage = figma.currentPage;
+    if (!currentPage) {
+      figma.notify('❌ Unable to access current page');
+      return false;
+    }
+    return true;
+  } catch (error) {
+    console.error('Error accessing page:', error);
+    figma.notify('❌ Error accessing page');
+    return false;
+  }
+}
+
 // Function to create text element in Figma
 async function createTextElement(text: string) {
   const hasAccess = await ensurePageAccess();
@@ -271,135 +284,233 @@ async function replaceSelectedTextElements(items: any[]) {
   return textElements;
 }
 
-figma.ui.onmessage = async (msg) => {
-  if (msg.type === 'get-selection-count') {
-    await updateSelectionCount();
+// Function to get selected text elements count
+async function getSelectedTextElementsCount(): Promise<number> {
+  const hasAccess = await ensurePageAccess();
+  if (!hasAccess) {
+    return 0;
   }
-  
-  if (msg.type === 'save-api-key') {
-    // Save API key to Figma's client storage
-    figma.clientStorage.setAsync('openai-api-key', msg.apiKey);
-    console.log('API key saved');
-  }
-  
-  if (msg.type === 'get-api-key') {
-    // Retrieve API key from Figma's client storage
-    figma.clientStorage.getAsync('openai-api-key').then((apiKey) => {
-      if (apiKey) {
-        figma.ui.postMessage({
-          type: 'api-key-loaded',
-          apiKey: apiKey
-        });
-      }
-    });
-  }
-  
-  if (msg.type === 'save-config') {
-    // Save configuration to Figma's client storage
-    currentConfig = Object.assign({}, defaultConfig, msg.config);
-    figma.clientStorage.setAsync('chatgpt-config', JSON.stringify(currentConfig));
-    console.log('Configuration saved:', currentConfig);
-  }
-  
-  if (msg.type === 'get-config') {
-    // Retrieve configuration from Figma's client storage
-    figma.clientStorage.getAsync('chatgpt-config').then((configStr) => {
-      if (configStr) {
-        try {
-          const savedConfig = JSON.parse(configStr);
-          currentConfig = Object.assign({}, defaultConfig, savedConfig);
-          figma.ui.postMessage({
-            type: 'config-loaded',
-            config: currentConfig
-          });
-        } catch (error) {
-          console.error('Error parsing saved config:', error);
-        }
-      }
-    });
-  }
-  
-  if (msg.type === 'send-chat-message') {
-    try {
-      // Get API key from storage
-      const apiKey = await figma.clientStorage.getAsync('openai-api-key');
-      
-      if (!apiKey) {
-        figma.ui.postMessage({
-          type: 'chat-response',
-          success: false,
-          message: 'Please set your OpenAI API key first'
-        });
-        figma.notify('❌ Please set your OpenAI API key first');
-        return;
-      }
-      
-      // Show loading state
-      figma.ui.postMessage({
-        type: 'chat-response',
-        success: true,
-        message: '🤔 Thinking...',
-        loading: true
-      });
-      
-      // Check if we have access to the current page
-      const hasAccess = await ensurePageAccess();
-      if (!hasAccess) {
-        figma.ui.postMessage({
-          type: 'chat-response',
-          success: false,
-          message: 'No access to current page. Please ensure you have an active Figma document.',
-          loading: false
-        });
-        return;
-      }
 
-      // Check if text elements are selected
-      const selection = figma.currentPage.selection;
-      const textElements = selection.filter(node => node.type === 'TEXT') as TextNode[];
-      
-      // Call ChatGPT API with selected text count
-      const aiResponse = await callChatGPT(apiKey, msg.message, textElements.length);
-      
-      let result;
-      if (textElements.length > 0 && aiResponse.isArray && aiResponse.items) {
-        // Check if we have enough items
-        if (aiResponse.items.length >= textElements.length) {
-          // Replace selected text elements with array items
-          result = await replaceSelectedTextElements(aiResponse.items);
-          figma.notify(`✅ Replaced ${textElements.length} text elements`);
-        } else {
-          // Not enough items - create new text element with the response
-          result = await createTextElement(aiResponse.content);
-          figma.notify(`⚠️ Only ${aiResponse.items.length} items received for ${textElements.length} text elements. Created new text element instead.`);
-        }
-      } else {
-        // Create new text element
-        result = await createTextElement(aiResponse.content);
-        figma.notify('✅ AI response added to canvas');
-      }
-      
-      // Send success response to UI
-      figma.ui.postMessage({
-        type: 'chat-response',
-        success: true,
-        message: aiResponse,
-        loading: false
-      });
-      
-      figma.notify('✅ AI response added to canvas');
-      
-    } catch (error) {
-      console.error('Error processing chat message:', error);
-      
-      figma.ui.postMessage({
-        type: 'chat-response',
-        success: false,
-        message: error instanceof Error ? error.message : 'An error occurred',
-        loading: false
-      });
-      
-      figma.notify('❌ Error: ' + (error instanceof Error ? error.message : 'Unknown error'));
+  const selection = figma.currentPage.selection;
+  const textElements = selection.filter(node => node.type === 'TEXT') as TextNode[];
+  return textElements.length;
+}
+
+// ============================================================================
+// STORAGE
+// ============================================================================
+
+// Storage keys
+const API_KEY_STORAGE_KEY = 'openai-api-key';
+const CONFIG_STORAGE_KEY = 'chatgpt-config';
+
+// Function to save API key to Figma's client storage
+async function saveApiKey(apiKey: string): Promise<void> {
+  await figma.clientStorage.setAsync(API_KEY_STORAGE_KEY, apiKey);
+  console.log('API key saved');
+}
+
+// Function to get API key from Figma's client storage
+async function getApiKey(): Promise<string | null> {
+  return await figma.clientStorage.getAsync(API_KEY_STORAGE_KEY);
+}
+
+// Function to save configuration to Figma's client storage
+async function saveConfig(config: Partial<ChatGPTConfig>): Promise<void> {
+  const fullConfig = Object.assign({}, defaultConfig, config);
+  await figma.clientStorage.setAsync(CONFIG_STORAGE_KEY, JSON.stringify(fullConfig));
+  console.log('Configuration saved:', fullConfig);
+}
+
+// Function to get configuration from Figma's client storage
+async function getConfig(): Promise<ChatGPTConfig | null> {
+  try {
+    const configStr = await figma.clientStorage.getAsync(CONFIG_STORAGE_KEY);
+    if (configStr) {
+      const savedConfig = JSON.parse(configStr);
+      return Object.assign({}, defaultConfig, savedConfig);
     }
+    return null;
+  } catch (error) {
+    console.error('Error parsing saved config:', error);
+    return null;
   }
+}
+
+// ============================================================================
+// MESSAGE HANDLERS
+// ============================================================================
+
+// Function to update selection count in UI
+async function updateSelectionCount(): Promise<void> {
+  const count = await getSelectedTextElementsCount();
+  figma.ui.postMessage({
+    type: 'selection-update',
+    count: count
+  });
+}
+
+// Function to send chat response to UI
+function sendChatResponse(
+  success: boolean, 
+  message: string, 
+  loading: boolean = false
+): void {
+  figma.ui.postMessage({
+    type: 'chat-response',
+    success,
+    message,
+    loading
+  });
+}
+
+// Function to send API key loaded message to UI
+function sendApiKeyLoaded(apiKey: string): void {
+  figma.ui.postMessage({
+    type: 'api-key-loaded',
+    apiKey
+  });
+}
+
+// Function to send config loaded message to UI
+function sendConfigLoaded(config: any): void {
+  figma.ui.postMessage({
+    type: 'config-loaded',
+    config
+  });
+}
+
+// Handler for save API key message
+async function handleSaveApiKey(msg: any): Promise<void> {
+  await saveApiKey(msg.apiKey);
+}
+
+// Handler for get API key message
+async function handleGetApiKey(): Promise<void> {
+  const apiKey = await getApiKey();
+  if (apiKey) {
+    sendApiKeyLoaded(apiKey);
+  }
+}
+
+// Handler for save config message
+async function handleSaveConfig(msg: any): Promise<void> {
+  await saveConfig(msg.config);
+  updateConfig(msg.config);
+}
+
+// Handler for get config message
+async function handleGetConfig(): Promise<void> {
+  const config = await getConfig();
+  if (config) {
+    sendConfigLoaded(config);
+  }
+}
+
+// Handler for send chat message
+async function handleSendChatMessage(msg: any): Promise<void> {
+  try {
+    // Get API key from storage
+    const apiKey = await getApiKey();
+    
+    if (!apiKey) {
+      sendChatResponse(false, 'Please set your OpenAI API key first');
+      figma.notify('❌ Please set your OpenAI API key first');
+      return;
+    }
+    
+    // Show loading state
+    sendChatResponse(true, '🤔 Thinking...', true);
+    
+    // Get selected text elements count
+    const selectedTextCount = await getSelectedTextElementsCount();
+    
+    // Call ChatGPT API
+    const aiResponse = await callChatGPT(apiKey, msg.message, selectedTextCount);
+    
+    let result;
+    if (selectedTextCount > 0 && aiResponse.isArray && aiResponse.items) {
+      // Check if we have enough items
+      if (aiResponse.items.length >= selectedTextCount) {
+        // Replace selected text elements with array items
+        result = await replaceSelectedTextElements(aiResponse.items);
+        figma.notify(`✅ Replaced ${selectedTextCount} text elements`);
+      } else {
+        // Not enough items - create new text element with the response
+        result = await createTextElement(aiResponse.content);
+        figma.notify(`⚠️ Only ${aiResponse.items.length} items received for ${selectedTextCount} text elements. Created new text element instead.`);
+      }
+    } else {
+      // Create new text element
+      result = await createTextElement(aiResponse.content);
+      figma.notify('✅ AI response added to canvas');
+    }
+    
+    // Send success response to UI
+    sendChatResponse(true, aiResponse.content, false);
+    
+  } catch (error) {
+    console.error('Error processing chat message:', error);
+    
+    sendChatResponse(
+      false, 
+      error instanceof Error ? error.message : 'An error occurred', 
+      false
+    );
+    
+    figma.notify('❌ Error: ' + (error instanceof Error ? error.message : 'Unknown error'));
+  }
+}
+
+// Main message handler
+async function handleMessage(msg: PluginMessage): Promise<void> {
+  switch (msg.type) {
+    case 'get-selection-count':
+      await updateSelectionCount();
+      break;
+      
+    case 'save-api-key':
+      await handleSaveApiKey(msg);
+      break;
+      
+    case 'get-api-key':
+      await handleGetApiKey();
+      break;
+      
+    case 'save-config':
+      await handleSaveConfig(msg);
+      break;
+      
+    case 'get-config':
+      await handleGetConfig();
+      break;
+      
+    case 'send-chat-message':
+      await handleSendChatMessage(msg);
+      break;
+      
+    default:
+      console.warn('Unknown message type:', msg.type);
+  }
+}
+
+// ============================================================================
+// MAIN PLUGIN CODE
+// ============================================================================
+
+// Initialize the plugin
+figma.showUI(__html__, { 
+  width: 400, 
+  height: 500,
+  themeColors: true
+});
+
+// Listen for selection changes
+figma.on('selectionchange', async () => {
+  await updateSelectionCount();
+});
+
+// Listen for messages from the UI
+figma.ui.onmessage = async (msg: PluginMessage) => {
+  await handleMessage(msg);
 }; 
