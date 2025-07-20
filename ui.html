@@ -6,19 +6,18 @@
       font-family: Inter, sans-serif;
       margin: 0;
       padding: 20px;
-      background: #f5f5f5;
+      padding-bottom: 40px;
+      background-color: var(--figma-color-bg);
+      color: var(--figma-color-text);
+      overflow-y: auto;
     }
     
     .container {
-      background: white;
-      border-radius: 8px;
-      padding: 20px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      /* intentionally empty */
     }
     
     h2 {
       margin: 0 0 20px 0;
-      color: #333;
       font-size: 18px;
       font-weight: 600;
     }
@@ -46,48 +45,606 @@
       background: #0B7BC7;
     }
     
+    .button:disabled {
+      background: #E5E5E5;
+      color: #999;
+      cursor: not-allowed;
+    }
+    
+    .chat-section {
+      margin-top: 24px;
+      padding-top: 20px;
+      border-top: 1px solid #E5E5E5;
+    }
+    
+    .selection-banner {
+      background: #F0F8FF;
+      border: 1px solid #D1E7FF;
+      border-radius: 6px;
+      padding: 12px 16px;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .selection-icon {
+      width: 16px;
+      height: 16px;
+      background: #18A0FB;
+      border-radius: 2px;
+      flex-shrink: 0;
+    }
+    
+    .selection-text {
+      font-size: 14px;
+      color: #333;
+      font-weight: 500;
+    }
+    
+    .selection-count {
+      font-weight: 600;
+      color: #18A0FB;
+    }
+    
+    .no-selection {
+      background: #F8F9FA;
+      border-color: #E9ECEF;
+    }
+    
+    .no-selection .selection-icon {
+      background: #6C757D;
+    }
+    
+    .no-selection .selection-text {
+      color: #6C757D;
+    }
+    
+    .no-selection .selection-count {
+      color: #6C757D;
+    }
+    
+    .chat-input-container {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    
+    .chat-input {
+      flex: 1;
+      padding: 10px 12px;
+      border: 1px solid #E5E5E5;
+      border-radius: 6px;
+      font-size: 14px;
+      font-family: Inter, sans-serif;
+      resize: none;
+      min-height: 40px;
+      max-height: 120px;
+    }
+    
+    .chat-input:focus {
+      outline: none;
+      border-color: #18A0FB;
+      box-shadow: 0 0 0 2px rgba(24, 160, 251, 0.1);
+    }
+    
+    .send-button {
+      padding: 10px 16px;
+      background: #18A0FB;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.2s;
+      white-space: nowrap;
+    }
+    
+    .send-button:hover:not(:disabled) {
+      background: #0D8DE3;
+    }
+    
+    .send-button:active:not(:disabled) {
+      background: #0B7BC7;
+    }
+    
+    .send-button:disabled {
+      background: #E5E5E5;
+      color: #999;
+      cursor: not-allowed;
+    }
+    
     .description {
       color: #666;
       font-size: 12px;
       margin-top: 16px;
       line-height: 1.4;
     }
+    
+    .accordion {
+      margin-top: 20px;
+      border: 1px solid #E5E5E5;
+      border-radius: 6px;
+      overflow: hidden;
+    }
+    
+    .accordion-header {
+      background: #F8F9FA;
+      padding: 12px 16px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid #E5E5E5;
+      transition: background 0.2s;
+    }
+    
+    .accordion-header:hover {
+      background: #E9ECEF;
+    }
+    
+    .accordion-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #333;
+      margin: 0;
+    }
+    
+    .accordion-icon {
+      width: 16px;
+      height: 16px;
+      transition: transform 0.2s;
+      color: #666;
+    }
+    
+    .accordion-icon.expanded {
+      transform: rotate(180deg);
+    }
+    
+    .accordion-content {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease-out;
+      background: white;
+    }
+    
+    .accordion-content.expanded {
+      max-height: 300px;
+      overflow-y: auto;
+    }
+    
+    .accordion-body {
+      padding: 16px;
+    }
+    
+    .api-key-input {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #E5E5E5;
+      border-radius: 6px;
+      font-size: 14px;
+      font-family: 'Courier New', monospace;
+      box-sizing: border-box;
+    }
+    
+    .api-key-input:focus {
+      outline: none;
+      border-color: #18A0FB;
+      box-shadow: 0 0 0 2px rgba(24, 160, 251, 0.1);
+    }
+    
+    .api-key-label {
+      display: block;
+      font-size: 12px;
+      color: #666;
+      margin-bottom: 8px;
+      font-weight: 500;
+    }
+    
+    .api-key-status {
+      font-size: 12px;
+      margin-top: 8px;
+      padding: 6px 10px;
+      border-radius: 4px;
+      display: none;
+    }
+    
+    .api-key-status.valid {
+      background: #D4EDDA;
+      color: #155724;
+      border: 1px solid #C3E6CB;
+      display: block;
+    }
+    
+    .api-key-status.invalid {
+      background: #F8D7DA;
+      color: #721C24;
+      border: 1px solid #F5C6CB;
+      display: block;
+    }
+    
+    .response-area {
+      margin-top: 12px;
+      padding: 12px;
+      border-radius: 6px;
+      font-size: 14px;
+      line-height: 1.4;
+      display: none;
+    }
+    
+    .response-area.success {
+      background: #D4EDDA;
+      color: #155724;
+      border: 1px solid #C3E6CB;
+      display: block;
+    }
+    
+    .response-area.error {
+      background: #F8D7DA;
+      color: #721C24;
+      border: 1px solid #F5C6CB;
+      display: block;
+    }
+    
+    .response-area.loading {
+      background: #D1ECF1;
+      color: #0C5460;
+      border: 1px solid #BEE5EB;
+      display: block;
+    }
+    
+    .send-button.loading {
+      background: #6C757D;
+      cursor: not-allowed;
+    }
+    
+    .send-button.loading::after {
+      content: '';
+      display: inline-block;
+      width: 12px;
+      height: 12px;
+      border: 2px solid transparent;
+      border-top: 2px solid white;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-left: 8px;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
   </style>
 </head>
 <body>
   <div class="container">
-    <h2>Figma Plugin Boilerplate</h2>
+    <h2>Mentarii</h2>
     
-    <button class="button" id="create-rectangle">
-      Create Rectangle
-    </button>
-    
-    <button class="button" id="create-circle">
-      Create Circle
-    </button>
-    
-    <button class="button" id="create-text">
-      Create Text
-    </button>
+    <div class="chat-section">
+      <h3 style="margin: 0 0 12px 0; font-size: 16px; font-weight: 600; color: #333;">AI Chat</h3>
+      
+      <div class="selection-banner" id="selection-banner">
+        <div class="selection-icon"></div>
+        <div class="selection-text">
+          <span id="selection-count">0</span> element<span id="selection-plural">s</span> selected
+        </div>
+      </div>
+      
+      <div class="chat-input-container">
+        <textarea 
+          class="chat-input" 
+          id="chat-input" 
+          placeholder="Type your message here..."
+          rows="2"
+        ></textarea>
+        <button class="send-button" id="send-button" disabled>
+          Send
+        </button>
+      </div>
+      
+      <div class="response-area" id="response-area"></div>
+    </div>
     
     <div class="description">
-      This is a simple Figma plugin boilerplate using vanilla JavaScript. 
-      Click the buttons above to create different elements on your canvas.
+      AI-powered ghostwriter for Figma. Generate text content with ChatGPT integration.
+      Select text elements to replace them with AI-generated content.
+    </div>
+    
+    <div class="accordion">
+      <div class="accordion-header" id="accordion-header">
+        <h3 class="accordion-title">Settings</h3>
+        <svg class="accordion-icon" id="accordion-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="6,9 12,15 18,9"></polyline>
+        </svg>
+      </div>
+      <div class="accordion-content" id="accordion-content">
+        <div class="accordion-body">
+          <div style="margin-bottom: 20px;">
+            <label class="api-key-label" for="api-key-input">OpenAI API Key</label>
+            <input 
+              type="password" 
+              class="api-key-input" 
+              id="api-key-input" 
+              placeholder="sk-..."
+              autocomplete="off"
+            />
+            <div class="api-key-status" id="api-key-status"></div>
+          </div>
+          
+          <div style="border-top: 1px solid #E5E5E5; padding-top: 20px; margin-bottom: 12px;">
+            <label class="api-key-label" for="model-select">Model</label>
+            <select class="api-key-input" id="model-select">
+              <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
+              <option value="gpt-4">GPT-4</option>
+              <option value="gpt-4-turbo">GPT-4 Turbo</option>
+            </select>
+          </div>
+          
+          <div style="margin-bottom: 12px;">
+            <label class="api-key-label" for="temperature-slider">Temperature: <span id="temperature-value">0.7</span></label>
+            <input 
+              type="range" 
+              id="temperature-slider" 
+              min="0" 
+              max="2" 
+              step="0.1" 
+              value="0.7"
+              style="width: 100%; margin-top: 4px;"
+            />
+          </div>
+          
+          <div style="margin-bottom: 12px;">
+            <label class="api-key-label" for="max-tokens-input">Max Tokens</label>
+            <input 
+              type="number" 
+              class="api-key-input" 
+              id="max-tokens-input" 
+              value="1000"
+              min="100"
+              max="4000"
+            />
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
   <script>
-    document.getElementById('create-rectangle').onclick = () => {
-      parent.postMessage({ pluginMessage: { type: 'create-rectangle' } }, '*');
-    };
+    // Chat functionality
+    const chatInput = document.getElementById('chat-input');
+    const sendButton = document.getElementById('send-button');
+    const responseArea = document.getElementById('response-area');
     
-    document.getElementById('create-circle').onclick = () => {
-      parent.postMessage({ pluginMessage: { type: 'create-circle' } }, '*');
-    };
+    // Update send button state based on input content
+    function updateSendButton() {
+      const hasContent = chatInput.value.trim().length > 0;
+      sendButton.disabled = !hasContent || sendButton.classList.contains('loading');
+    }
     
-    document.getElementById('create-text').onclick = () => {
-      parent.postMessage({ pluginMessage: { type: 'create-text' } }, '*');
-    };
+    // Show response in UI
+    function showResponse(message, type = 'success') {
+      responseArea.textContent = message;
+      responseArea.className = `response-area ${type}`;
+    }
+    
+    // Clear response
+    function clearResponse() {
+      responseArea.className = 'response-area';
+      responseArea.textContent = '';
+    }
+    
+    // Set loading state
+    function setLoading(loading) {
+      if (loading) {
+        sendButton.classList.add('loading');
+        sendButton.textContent = 'Sending...';
+        showResponse('🤔 Thinking...', 'loading');
+      } else {
+        sendButton.classList.remove('loading');
+        sendButton.textContent = 'Send';
+      }
+      updateSendButton();
+    }
+    
+    // Handle input changes
+    chatInput.addEventListener('input', updateSendButton);
+    
+    // Handle send button click
+    sendButton.addEventListener('click', () => {
+      const message = chatInput.value.trim();
+      if (message && !sendButton.classList.contains('loading')) {
+        setLoading(true);
+        clearResponse();
+        
+        parent.postMessage({ 
+          pluginMessage: { 
+            type: 'send-chat-message',
+            message: message 
+          } 
+        }, '*');
+        
+        chatInput.value = '';
+        updateSendButton();
+      }
+    });
+    
+    // Handle Enter key to send message
+    chatInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendButton.click();
+      }
+    });
+    
+    // Selection counter display updates
+    const selectionBanner = document.getElementById('selection-banner');
+    const selectionCount = document.getElementById('selection-count');
+    const selectionPlural = document.getElementById('selection-plural');
+    
+    // Update selection display
+    function updateSelectionDisplay(count) {
+      selectionCount.textContent = count;
+      selectionPlural.textContent = count === 1 ? '' : 's';
+      
+      if (count === 0) {
+        selectionBanner.classList.add('no-selection');
+      } else {
+        selectionBanner.classList.remove('no-selection');
+      }
+    }
+    
+    // Listen for selection updates from the plugin
+    window.addEventListener('message', (event) => {
+      if (event.data.pluginMessage && event.data.pluginMessage.type === 'selection-update') {
+        const count = event.data.pluginMessage.count;
+        updateSelectionDisplay(count);
+      }
+      
+      if (event.data.pluginMessage && event.data.pluginMessage.type === 'chat-response') {
+        // Handle chat response from plugin
+        const response = event.data.pluginMessage;
+        setLoading(false);
+        
+        if (response.success) {
+          if (response.loading) {
+            showResponse(response.message, 'loading');
+          } else {
+            showResponse('✅ Response added to Figma canvas!', 'success');
+            // Clear the response after a few seconds
+            setTimeout(clearResponse, 3000);
+          }
+        } else {
+          showResponse('❌ ' + response.message, 'error');
+        }
+      }
+      
+      if (event.data.pluginMessage && event.data.pluginMessage.type === 'api-key-loaded') {
+        // Load saved API key into input
+        const savedApiKey = event.data.pluginMessage.apiKey;
+        apiKeyInput.value = savedApiKey;
+        updateApiKeyStatus(savedApiKey);
+      }
+      
+      if (event.data.pluginMessage && event.data.pluginMessage.type === 'config-loaded') {
+        // Load saved configuration into inputs
+        const config = event.data.pluginMessage.config;
+        modelSelect.value = config.model;
+        temperatureSlider.value = config.temperature;
+        temperatureValue.textContent = config.temperature;
+        maxTokensInput.value = config.max_tokens;
+      }
+    });
+    
+    // Request initial selection count
+    parent.postMessage({ pluginMessage: { type: 'get-selection-count' } }, '*');
+    
+    // Accordion functionality
+    const accordionHeader = document.getElementById('accordion-header');
+    const accordionContent = document.getElementById('accordion-content');
+    const accordionIcon = document.getElementById('accordion-icon');
+    const apiKeyInput = document.getElementById('api-key-input');
+    const apiKeyStatus = document.getElementById('api-key-status');
+    
+    // Config controls
+    const modelSelect = document.getElementById('model-select');
+    const temperatureSlider = document.getElementById('temperature-slider');
+    const temperatureValue = document.getElementById('temperature-value');
+    const maxTokensInput = document.getElementById('max-tokens-input');
+    
+    let isAccordionExpanded = false;
+    
+    // Toggle accordion
+    function toggleAccordion() {
+      isAccordionExpanded = !isAccordionExpanded;
+      
+      if (isAccordionExpanded) {
+        accordionContent.classList.add('expanded');
+        accordionIcon.classList.add('expanded');
+      } else {
+        accordionContent.classList.remove('expanded');
+        accordionIcon.classList.remove('expanded');
+      }
+    }
+    
+
+    
+    // Validate API key format
+    function validateApiKey(key) {
+      // Basic OpenAI API key validation (starts with sk- and has reasonable length)
+      return key.startsWith('sk-') && key.length > 20;
+    }
+    
+    // Update API key status
+    function updateApiKeyStatus(key) {
+      if (!key) {
+        apiKeyStatus.className = 'api-key-status';
+        apiKeyStatus.textContent = '';
+        return;
+      }
+      
+      if (validateApiKey(key)) {
+        apiKeyStatus.className = 'api-key-status valid';
+        apiKeyStatus.textContent = '✓ Valid API key format';
+      } else {
+        apiKeyStatus.className = 'api-key-status invalid';
+        apiKeyStatus.textContent = '✗ Invalid API key format';
+      }
+    }
+    
+    // Save API key to plugin
+    function saveApiKey(key) {
+      parent.postMessage({ 
+        pluginMessage: { 
+          type: 'save-api-key',
+          apiKey: key 
+        } 
+      }, '*');
+    }
+    
+    // Save configuration to plugin
+    function saveConfig() {
+      const config = {
+        model: modelSelect.value,
+        temperature: parseFloat(temperatureSlider.value),
+        max_tokens: parseInt(maxTokensInput.value)
+      };
+      
+      parent.postMessage({ 
+        pluginMessage: { 
+          type: 'save-config',
+          config: config 
+        } 
+      }, '*');
+    }
+    
+    // Event listeners
+    accordionHeader.addEventListener('click', toggleAccordion);
+    
+    // Temperature slider
+    temperatureSlider.addEventListener('input', (e) => {
+      temperatureValue.textContent = e.target.value;
+    });
+    
+    // Config change handlers
+    modelSelect.addEventListener('change', saveConfig);
+    temperatureSlider.addEventListener('change', saveConfig);
+    maxTokensInput.addEventListener('change', saveConfig);
+    
+    apiKeyInput.addEventListener('input', (e) => {
+      const key = e.target.value;
+      updateApiKeyStatus(key);
+      
+      // Save key after a short delay (debounce)
+      clearTimeout(apiKeyInput.saveTimeout);
+      apiKeyInput.saveTimeout = setTimeout(() => {
+        saveApiKey(key);
+      }, 500);
+    });
+    
+    // Load saved API key and config from plugin
+    parent.postMessage({ pluginMessage: { type: 'get-api-key' } }, '*');
+    parent.postMessage({ pluginMessage: { type: 'get-config' } }, '*');
   </script>
 </body>
 </html> 
