@@ -4,5 +4,10 @@
   "api": "1.0.0",
   "main": "dist/code.js",
   "ui": "ui.html",
-  "editorType": ["figma"]
+  "editorType": ["figma"],
+  "documentAccess": "dynamic-page",
+  "networkAccess": {
+    "allowedDomains": ["https://api.openai.com"],
+    "reasoning": "This plugin integrates with OpenAI's ChatGPT API to generate content for Figma text elements."
+  }
 } 

@@ -12,10 +12,6 @@
       overflow-y: auto;
     }
     
-    .container {
-      /* intentionally empty */
-    }
-    
     h2 {
       margin: 0 0 20px 0;
       font-size: 18px;
@@ -106,20 +102,21 @@
     
     .chat-input-container {
       display: flex;
+      position: relative;
       gap: 8px;
       margin-bottom: 12px;
     }
     
     .chat-input {
       flex: 1;
-      padding: 10px 12px;
+      padding: 10px 12px 32px;
       border: 1px solid #E5E5E5;
       border-radius: 6px;
       font-size: 14px;
       font-family: Inter, sans-serif;
       resize: none;
       min-height: 40px;
-      max-height: 120px;
+      max-height: none;
     }
     
     .chat-input:focus {
@@ -139,6 +136,9 @@
       cursor: pointer;
       transition: background 0.2s;
       white-space: nowrap;
+      position: absolute;
+      right: 8px;
+      bottom: 8px;
     }
     
     .send-button:hover:not(:disabled) {
@@ -322,7 +322,7 @@
     <h2>Mentarii</h2>
     
     <div class="chat-section">
-      <h3 style="margin: 0 0 12px 0; font-size: 16px; font-weight: 600; color: #333;">AI Chat</h3>
+      <h3>AI Chat</h3>
       
       <div class="selection-banner" id="selection-banner">
         <div class="selection-icon"></div>

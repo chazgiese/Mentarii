@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "target": "ES2015",
-    "module": "ES2015",
+    "module": "None",
     "lib": ["ES2015", "DOM"],
     "moduleResolution": "Node",
     "esModuleInterop": true,
@@ -11,5 +11,5 @@
     "outDir": "dist",
     "types": ["@figma/plugin-typings"]
   },
-  "include": ["src/**/*", "code.ts"]
+  "include": ["code.ts"]
 } 
