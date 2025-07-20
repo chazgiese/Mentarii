@@ -1,5 +1,28 @@
 /// <reference types="@figma/plugin-typings" />
 
+// Check if we have access to the current page
+async function ensurePageAccess() {
+  if (!figma.editorType) {
+    // We're not in an editor context
+    figma.notify('❌ This plugin requires an active Figma document');
+    return false;
+  }
+
+  try {
+    // Check if we can access the current page
+    const currentPage = figma.currentPage;
+    if (!currentPage) {
+      figma.notify('❌ Unable to access current page');
+      return false;
+    }
+    return true;
+  } catch (error) {
+    console.error('Error accessing page:', error);
+    figma.notify('❌ Error accessing page');
+    return false;
+  }
+}
+
 figma.showUI(__html__, { 
   width: 400, 
   height: 500,
@@ -7,7 +30,16 @@ figma.showUI(__html__, {
 });
 
 // Function to update selection count in UI
-function updateSelectionCount() {
+async function updateSelectionCount() {
+  const hasAccess = await ensurePageAccess();
+  if (!hasAccess) {
+    figma.ui.postMessage({
+      type: 'selection-update',
+      count: 0
+    });
+    return;
+  }
+
   const count = figma.currentPage.selection.length;
   figma.ui.postMessage({
     type: 'selection-update',
@@ -16,8 +48,8 @@ function updateSelectionCount() {
 }
 
 // Listen for selection changes
-figma.on('selectionchange', () => {
-  updateSelectionCount();
+figma.on('selectionchange', async () => {
+  await updateSelectionCount();
 });
 
 // ChatGPT API configuration
@@ -165,6 +197,11 @@ async function callChatGPT(apiKey: string, message: string, selectedTextCount: n
 
 // Function to create text element in Figma
 async function createTextElement(text: string) {
+  const hasAccess = await ensurePageAccess();
+  if (!hasAccess) {
+    throw new Error('No access to current page');
+  }
+
   // Load the font first
   await figma.loadFontAsync({ family: "Inter", style: "Regular" });
   
@@ -195,6 +232,11 @@ async function createTextElement(text: string) {
 
 // Function to replace selected text elements with array items
 async function replaceSelectedTextElements(items: any[]) {
+  const hasAccess = await ensurePageAccess();
+  if (!hasAccess) {
+    throw new Error('No access to current page');
+  }
+
   // Load the font first
   await figma.loadFontAsync({ family: "Inter", style: "Regular" });
   
@@ -231,7 +273,7 @@ async function replaceSelectedTextElements(items: any[]) {
 
 figma.ui.onmessage = async (msg) => {
   if (msg.type === 'get-selection-count') {
-    updateSelectionCount();
+    await updateSelectionCount();
   }
   
   if (msg.type === 'save-api-key') {
@@ -300,6 +342,18 @@ figma.ui.onmessage = async (msg) => {
         loading: true
       });
       
+      // Check if we have access to the current page
+      const hasAccess = await ensurePageAccess();
+      if (!hasAccess) {
+        figma.ui.postMessage({
+          type: 'chat-response',
+          success: false,
+          message: 'No access to current page. Please ensure you have an active Figma document.',
+          loading: false
+        });
+        return;
+      }
+
       // Check if text elements are selected
       const selection = figma.currentPage.selection;
       const textElements = selection.filter(node => node.type === 'TEXT') as TextNode[];
