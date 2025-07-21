@@ -1,8 +1,8 @@
 {
-  "name": "figma-plugin-boilerplate",
+  "name": "mentarii",
   "version": "1.0.0",
-  "description": "A simple Figma plugin boilerplate using vanilla JavaScript.",
-  "main": "code.js",
+  "description": "Mentarii: An AI-powered ghostwriter plugin for Figma that generates text content using OpenAI's ChatGPT API.",
+  "main": "dist/code.js",
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
