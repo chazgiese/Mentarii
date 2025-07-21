@@ -135,33 +135,51 @@
     }
     
     .send-button {
-      padding: 10px 16px;
+      width: 40px;
+      height: 40px;
+      min-width: 40px;
+      min-height: 40px;
+      max-width: 40px;
+      max-height: 40px;
+      padding: 0;
       background: #18A0FB;
       color: white;
       border: none;
-      border-radius: 6px;
-      font-size: 14px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
       font-weight: 500;
       cursor: pointer;
       transition: background 0.2s;
-      white-space: nowrap;
       position: absolute;
       right: 8px;
       bottom: 8px;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.04);
     }
-    
-    .send-button:hover:not(:disabled) {
-      background: #0D8DE3;
+    .send-button svg {
+      width: 20px;
+      height: 20px;
+      display: block;
     }
-    
-    .send-button:active:not(:disabled) {
-      background: #0B7BC7;
-    }
-    
-    .send-button:disabled {
-      background: #E5E5E5;
-      color: #999;
+    .send-button.loading {
+      background: #6C757D;
       cursor: not-allowed;
+    }
+    .send-button .spinner {
+      width: 20px;
+      height: 20px;
+      border: 2px solid #fff;
+      border-top: 2px solid #18A0FB;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      box-sizing: border-box;
+      display: block;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
     }
     
     .description {
@@ -348,8 +366,8 @@
           contenteditable="true"
           data-placeholder="Type your message here..."
         ></div>
-        <button class="send-button" id="send-button" disabled>
-          Send
+        <button class="send-button" id="send-button" disabled aria-label="Send">
+          <svg id="send-arrow" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="none"><path d="M5 10h10M10 5l5 5-5 5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </button>
       </div>
       
@@ -407,11 +425,11 @@
     function setLoading(loading) {
       if (loading) {
         sendButton.classList.add('loading');
-        sendButton.textContent = 'Sending...';
+        sendButton.innerHTML = '<span class="spinner"></span>';
         showResponse('🤔 Thinking...', 'loading');
       } else {
         sendButton.classList.remove('loading');
-        sendButton.textContent = 'Send';
+        sendButton.innerHTML = '<svg id="send-arrow" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="none"><path d="M5 10h10M10 5l5 5-5 5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
       }
       updateSendButton();
     }
@@ -487,7 +505,7 @@
       if (event.data.pluginMessage && event.data.pluginMessage.type === 'chat-response') {
         // Handle chat response from plugin
         const response = event.data.pluginMessage;
-        setLoading(false);
+        setLoading(response.loading);
         
         if (response.success) {
           if (response.loading) {
