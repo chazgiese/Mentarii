@@ -47,15 +47,11 @@ const defaultConfig: ChatGPTConfig = {
   presence_penalty: 0
 };
 
-// Current configuration (can be updated by UI)
-let currentConfig: ChatGPTConfig = { ...defaultConfig };
-
 // Function to call ChatGPT API
 async function callChatGPT(
   apiKey: string, 
   message: string, 
-  selectedTextCount: number = 0, 
-  config: ChatGPTConfig = currentConfig
+  selectedTextCount: number = 0
 ): Promise<ChatGPTResponse> {
   try {
     // Create system prompt based on whether text elements are selected
@@ -72,7 +68,7 @@ async function callChatGPT(
         'Authorization': `Bearer ${apiKey}`
       },
       body: JSON.stringify({
-        model: config.model,
+        model: defaultConfig.model,
         messages: [
           {
             role: "system",
@@ -83,11 +79,11 @@ async function callChatGPT(
             content: message
           }
         ],
-        temperature: config.temperature,
-        max_tokens: config.max_tokens,
-        top_p: config.top_p,
-        frequency_penalty: config.frequency_penalty,
-        presence_penalty: config.presence_penalty,
+        temperature: defaultConfig.temperature,
+        max_tokens: defaultConfig.max_tokens,
+        top_p: defaultConfig.top_p,
+        frequency_penalty: defaultConfig.frequency_penalty,
+        presence_penalty: defaultConfig.presence_penalty,
         response_format: { type: "json_object" }
       })
     });
@@ -176,11 +172,6 @@ async function callChatGPT(
   }
 }
 
-// Function to update the current configuration
-function updateConfig(newConfig: Partial<ChatGPTConfig>) {
-  currentConfig = Object.assign({}, defaultConfig, newConfig);
-}
-
 // ============================================================================
 // FIGMA OPERATIONS
 // ============================================================================
@@ -249,9 +240,6 @@ async function replaceSelectedTextElements(items: any[]) {
   if (!hasAccess) {
     throw new Error('No access to current page');
   }
-
-  // Load the font first
-  await figma.loadFontAsync({ family: "Inter", style: "Regular" });
   
   const selection = figma.currentPage.selection;
   const textElements = selection.filter(node => node.type === 'TEXT') as TextNode[];
@@ -277,7 +265,11 @@ async function replaceSelectedTextElements(items: any[]) {
     // Convert item to string
     const itemText = typeof item === 'string' ? item : JSON.stringify(item);
     
-    // Replace the text content
+    // Load the font that the text element is currently using
+    const currentFont = textElement.fontName as FontName;
+    await figma.loadFontAsync(currentFont);
+    
+    // Replace the text content while preserving the existing font style
     textElement.characters = itemText;
   }
   
@@ -302,7 +294,6 @@ async function getSelectedTextElementsCount(): Promise<number> {
 
 // Storage keys
 const API_KEY_STORAGE_KEY = 'openai-api-key';
-const CONFIG_STORAGE_KEY = 'chatgpt-config';
 
 // Function to save API key to Figma's client storage
 async function saveApiKey(apiKey: string): Promise<void> {
@@ -313,28 +304,6 @@ async function saveApiKey(apiKey: string): Promise<void> {
 // Function to get API key from Figma's client storage
 async function getApiKey(): Promise<string | null> {
   return await figma.clientStorage.getAsync(API_KEY_STORAGE_KEY);
-}
-
-// Function to save configuration to Figma's client storage
-async function saveConfig(config: Partial<ChatGPTConfig>): Promise<void> {
-  const fullConfig = Object.assign({}, defaultConfig, config);
-  await figma.clientStorage.setAsync(CONFIG_STORAGE_KEY, JSON.stringify(fullConfig));
-  console.log('Configuration saved:', fullConfig);
-}
-
-// Function to get configuration from Figma's client storage
-async function getConfig(): Promise<ChatGPTConfig | null> {
-  try {
-    const configStr = await figma.clientStorage.getAsync(CONFIG_STORAGE_KEY);
-    if (configStr) {
-      const savedConfig = JSON.parse(configStr);
-      return Object.assign({}, defaultConfig, savedConfig);
-    }
-    return null;
-  } catch (error) {
-    console.error('Error parsing saved config:', error);
-    return null;
-  }
 }
 
 // ============================================================================
@@ -372,14 +341,6 @@ function sendApiKeyLoaded(apiKey: string): void {
   });
 }
 
-// Function to send config loaded message to UI
-function sendConfigLoaded(config: any): void {
-  figma.ui.postMessage({
-    type: 'config-loaded',
-    config
-  });
-}
-
 // Handler for save API key message
 async function handleSaveApiKey(msg: any): Promise<void> {
   await saveApiKey(msg.apiKey);
@@ -390,20 +351,6 @@ async function handleGetApiKey(): Promise<void> {
   const apiKey = await getApiKey();
   if (apiKey) {
     sendApiKeyLoaded(apiKey);
-  }
-}
-
-// Handler for save config message
-async function handleSaveConfig(msg: any): Promise<void> {
-  await saveConfig(msg.config);
-  updateConfig(msg.config);
-}
-
-// Handler for get config message
-async function handleGetConfig(): Promise<void> {
-  const config = await getConfig();
-  if (config) {
-    sendConfigLoaded(config);
   }
 }
 
@@ -429,19 +376,22 @@ async function handleSendChatMessage(msg: any): Promise<void> {
     const aiResponse = await callChatGPT(apiKey, msg.message, selectedTextCount);
     
     let result;
-    if (selectedTextCount > 0 && aiResponse.isArray && aiResponse.items) {
-      // Check if we have enough items
-      if (aiResponse.items.length >= selectedTextCount) {
+    if (selectedTextCount > 0) {
+      if (aiResponse.isArray && aiResponse.items && aiResponse.items.length >= selectedTextCount) {
         // Replace selected text elements with array items
         result = await replaceSelectedTextElements(aiResponse.items);
         figma.notify(`✅ Replaced ${selectedTextCount} text elements`);
+      } else if (!aiResponse.isArray && selectedTextCount === 1) {
+        // Single text element selected, and response is a string: replace it
+        result = await replaceSelectedTextElements([aiResponse.content]);
+        figma.notify('✅ Replaced 1 text element');
       } else {
-        // Not enough items - create new text element with the response
+        // Not enough items or unexpected response - create new text element
         result = await createTextElement(aiResponse.content);
-        figma.notify(`⚠️ Only ${aiResponse.items.length} items received for ${selectedTextCount} text elements. Created new text element instead.`);
+        figma.notify('✅ AI response added to canvas');
       }
     } else {
-      // Create new text element
+      // No text elements selected, create new text element
       result = await createTextElement(aiResponse.content);
       figma.notify('✅ AI response added to canvas');
     }
@@ -475,14 +425,6 @@ async function handleMessage(msg: PluginMessage): Promise<void> {
       
     case 'get-api-key':
       await handleGetApiKey();
-      break;
-      
-    case 'save-config':
-      await handleSaveConfig(msg);
-      break;
-      
-    case 'get-config':
-      await handleGetConfig();
       break;
       
     case 'send-chat-message':

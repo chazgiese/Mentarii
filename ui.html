@@ -49,8 +49,6 @@
     
     .chat-section {
       margin-top: 24px;
-      padding-top: 20px;
-      border-top: 1px solid #E5E5E5;
     }
     
     .selection-banner {
@@ -103,119 +101,83 @@
     .chat-input-container {
       display: flex;
       position: relative;
-      gap: 8px;
-      margin-bottom: 12px;
+      box-sizing: border-box;
     }
     
     .chat-input {
+      background-color: var(--figma-color-bg-secondary);
       flex: 1;
-      padding: 10px 12px 32px;
-      border: 1px solid #E5E5E5;
-      border-radius: 6px;
-      font-size: 14px;
+      padding: 12px 16px 56px;
+      border-radius: 16px;
+      box-sizing: border-box;
+      font-size: 13px;
       font-family: Inter, sans-serif;
-      resize: none;
-      min-height: 40px;
-      max-height: none;
+      font-weight: 400;
+      height: 148px;
+      min-height: 148px;
+      line-height: 20px;
+      overflow-y: auto;
+      word-wrap: break-word;
+      white-space: pre-wrap;
+      outline: none;
     }
     
     .chat-input:focus {
       outline: none;
-      border-color: #18A0FB;
-      box-shadow: 0 0 0 2px rgba(24, 160, 251, 0.1);
+    }
+    
+    .chat-input[data-placeholder]:empty:before {
+      content: attr(data-placeholder);
+      color: var(--figma-color-text-disabled);
+      pointer-events: none;
     }
     
     .send-button {
-      padding: 10px 16px;
-      background: #18A0FB;
-      color: white;
+      width: 32px;
+      height: 32px;
+      min-width: 32px;
+      min-height: 32px;
+      max-width: 32px;
+      max-height: 32px;
+      padding: 0;
+      background: var(--figma-color-bg-brand);
+      color: var(--figma-color-text-on-brand);
       border: none;
-      border-radius: 6px;
-      font-size: 14px;
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
       font-weight: 500;
       cursor: pointer;
       transition: background 0.2s;
-      white-space: nowrap;
       position: absolute;
       right: 8px;
       bottom: 8px;
     }
-    
-    .send-button:hover:not(:disabled) {
-      background: #0D8DE3;
-    }
-    
-    .send-button:active:not(:disabled) {
-      background: #0B7BC7;
-    }
-    
-    .send-button:disabled {
-      background: #E5E5E5;
-      color: #999;
-      cursor: not-allowed;
-    }
-    
-    .description {
-      color: #666;
-      font-size: 12px;
-      margin-top: 16px;
-      line-height: 1.4;
-    }
-    
-    .accordion {
-      margin-top: 20px;
-      border: 1px solid #E5E5E5;
-      border-radius: 6px;
-      overflow: hidden;
-    }
-    
-    .accordion-header {
-      background: #F8F9FA;
-      padding: 12px 16px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      border-bottom: 1px solid #E5E5E5;
-      transition: background 0.2s;
-    }
-    
-    .accordion-header:hover {
-      background: #E9ECEF;
-    }
-    
-    .accordion-title {
-      font-size: 14px;
-      font-weight: 600;
-      color: #333;
-      margin: 0;
-    }
-    
-    .accordion-icon {
+    .send-button svg {
       width: 16px;
       height: 16px;
-      transition: transform 0.2s;
-      color: #666;
+      display: block;
+      fill: var(--figma-color-text-on-brand);
     }
-    
-    .accordion-icon.expanded {
-      transform: rotate(180deg);
+    .send-button.loading {
+      background: #6C757D;
+      cursor: not-allowed;
     }
-    
-    .accordion-content {
-      max-height: 0;
-      overflow: hidden;
-      transition: max-height 0.3s ease-out;
-      background: white;
+    .send-button .spinner {
+      width: 20px;
+      height: 20px;
+      border: 2px solid #fff;
+      border-top: 2px solid #18A0FB;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      box-sizing: border-box;
+      display: block;
     }
-    
-    .accordion-content.expanded {
-      max-height: 300px;
-      overflow-y: auto;
-    }
-    
-    .accordion-body {
-      padding: 16px;
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
     }
     
     .api-key-input {
@@ -319,10 +281,8 @@
 </head>
 <body>
   <div class="container">
-    <h2>Mentarii</h2>
     
     <div class="chat-section">
-      <h3>AI Chat</h3>
       
       <div class="selection-banner" id="selection-banner">
         <div class="selection-icon"></div>
@@ -332,80 +292,37 @@
       </div>
       
       <div class="chat-input-container">
-        <textarea 
+        <span id="key-icon" style="float: right; cursor: pointer; font-size: 20px; margin-top: 4px;" title="Set API Key">🔑</span>
+        <div 
           class="chat-input" 
           id="chat-input" 
-          placeholder="Type your message here..."
-          rows="2"
-        ></textarea>
-        <button class="send-button" id="send-button" disabled>
-          Send
+          contenteditable="true"
+          data-placeholder="Type your message here..."
+        ></div>
+        <button class="send-button" id="send-button" disabled aria-label="Send">
+          <svg id="send-arrow" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M13.0306 7.53065C12.9609 7.60057 12.8781 7.65605 12.787 7.6939C12.6958 7.73176 12.5981 7.75124 12.4993 7.75124C12.4006 7.75124 12.3029 7.73176 12.2117 7.6939C12.1206 7.65605 12.0378 7.60057 11.9681 7.53065L8.74997 4.31253V13.5C8.74997 13.6989 8.67095 13.8897 8.5303 14.0304C8.38965 14.171 8.19888 14.25 7.99997 14.25C7.80106 14.25 7.61029 14.171 7.46964 14.0304C7.32899 13.8897 7.24997 13.6989 7.24997 13.5V4.31253L4.0306 7.53065C3.8897 7.67155 3.69861 7.7507 3.49935 7.7507C3.30009 7.7507 3.10899 7.67155 2.9681 7.53065C2.8272 7.38975 2.74805 7.19866 2.74805 6.9994C2.74805 6.80014 2.8272 6.60905 2.9681 6.46815L7.4681 1.96815C7.53778 1.89823 7.62057 1.84275 7.71173 1.8049C7.8029 1.76704 7.90064 1.74756 7.99935 1.74756C8.09806 1.74756 8.1958 1.76704 8.28696 1.8049C8.37813 1.84275 8.46092 1.89823 8.5306 1.96815L13.0306 6.46815C13.1005 6.53783 13.156 6.62062 13.1938 6.71179C13.2317 6.80295 13.2512 6.90069 13.2512 6.9994C13.2512 7.09811 13.2317 7.19585 13.1938 7.28701C13.156 7.37818 13.1005 7.46097 13.0306 7.53065Z" fill="white"/>
+          </svg>
         </button>
       </div>
       
       <div class="response-area" id="response-area"></div>
     </div>
-    
-    <div class="description">
-      AI-powered ghostwriter for Figma. Generate text content with ChatGPT integration.
-      Select text elements to replace them with AI-generated content.
-    </div>
-    
-    <div class="accordion">
-      <div class="accordion-header" id="accordion-header">
-        <h3 class="accordion-title">Settings</h3>
-        <svg class="accordion-icon" id="accordion-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <polyline points="6,9 12,15 18,9"></polyline>
-        </svg>
-      </div>
-      <div class="accordion-content" id="accordion-content">
-        <div class="accordion-body">
-          <div style="margin-bottom: 20px;">
-            <label class="api-key-label" for="api-key-input">OpenAI API Key</label>
-            <input 
-              type="password" 
-              class="api-key-input" 
-              id="api-key-input" 
-              placeholder="sk-..."
-              autocomplete="off"
-            />
-            <div class="api-key-status" id="api-key-status"></div>
-          </div>
-          
-          <div style="border-top: 1px solid #E5E5E5; padding-top: 20px; margin-bottom: 12px;">
-            <label class="api-key-label" for="model-select">Model</label>
-            <select class="api-key-input" id="model-select">
-              <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
-              <option value="gpt-4">GPT-4</option>
-              <option value="gpt-4-turbo">GPT-4 Turbo</option>
-            </select>
-          </div>
-          
-          <div style="margin-bottom: 12px;">
-            <label class="api-key-label" for="temperature-slider">Temperature: <span id="temperature-value">0.7</span></label>
-            <input 
-              type="range" 
-              id="temperature-slider" 
-              min="0" 
-              max="2" 
-              step="0.1" 
-              value="0.7"
-              style="width: 100%; margin-top: 4px;"
-            />
-          </div>
-          
-          <div style="margin-bottom: 12px;">
-            <label class="api-key-label" for="max-tokens-input">Max Tokens</label>
-            <input 
-              type="number" 
-              class="api-key-input" 
-              id="max-tokens-input" 
-              value="1000"
-              min="100"
-              max="4000"
-            />
-          </div>
-        </div>
+
+    <!-- API Key Modal -->
+    <div id="api-key-modal" style="display:none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.2); z-index: 1000; align-items: center; justify-content: center;">
+      <div style="background: white; padding: 24px 20px 20px 20px; border-radius: 8px; box-shadow: 0 2px 16px rgba(0,0,0,0.15); min-width: 320px; position: relative;">
+        <button id="close-modal" style="position: absolute; top: 8px; right: 8px; background: none; border: none; font-size: 18px; cursor: pointer;">&times;</button>
+        <label class="api-key-label" for="api-key-input-modal">OpenAI API Key</label>
+        <input 
+          type="password" 
+          class="api-key-input" 
+          id="api-key-input-modal" 
+          placeholder="sk-..."
+          autocomplete="off"
+          style="margin-bottom: 12px;"
+        />
+        <div class="api-key-status" id="api-key-status-modal"></div>
       </div>
     </div>
   </div>
@@ -418,7 +335,7 @@
     
     // Update send button state based on input content
     function updateSendButton() {
-      const hasContent = chatInput.value.trim().length > 0;
+      const hasContent = chatInput.textContent.trim().length > 0;
       sendButton.disabled = !hasContent || sendButton.classList.contains('loading');
     }
     
@@ -438,21 +355,32 @@
     function setLoading(loading) {
       if (loading) {
         sendButton.classList.add('loading');
-        sendButton.textContent = 'Sending...';
+        sendButton.innerHTML = '<span class="spinner"></span>';
         showResponse('🤔 Thinking...', 'loading');
       } else {
         sendButton.classList.remove('loading');
-        sendButton.textContent = 'Send';
+        sendButton.innerHTML = '<svg id="send-arrow" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M13.0306 7.53065C12.9609 7.60057 12.8781 7.65605 12.787 7.6939C12.6958 7.73176 12.5981 7.75124 12.4993 7.75124C12.4006 7.75124 12.3029 7.73176 12.2117 7.6939C12.1206 7.65605 12.0378 7.60057 11.9681 7.53065L8.74997 4.31253V13.5C8.74997 13.6989 8.67095 13.8897 8.5303 14.0304C8.38965 14.171 8.19888 14.25 7.99997 14.25C7.80106 14.25 7.61029 14.171 7.46964 14.0304C7.32899 13.8897 7.24997 13.6989 7.24997 13.5V4.31253L4.0306 7.53065C3.8897 7.67155 3.69861 7.7507 3.49935 7.7507C3.30009 7.7507 3.10899 7.67155 2.9681 7.53065C2.8272 7.38975 2.74805 7.19866 2.74805 6.9994C2.74805 6.80014 2.8272 6.60905 2.9681 6.46815L7.4681 1.96815C7.53778 1.89823 7.62057 1.84275 7.71173 1.8049C7.8029 1.76704 7.90064 1.74756 7.99935 1.74756C8.09806 1.74756 8.1958 1.76704 8.28696 1.8049C8.37813 1.84275 8.46092 1.89823 8.5306 1.96815L13.0306 6.46815C13.1005 6.53783 13.156 6.62062 13.1938 6.71179C13.2317 6.80295 13.2512 6.90069 13.2512 6.9994C13.2512 7.09811 13.2317 7.19585 13.1938 7.28701C13.156 7.37818 13.1005 7.46097 13.0306 7.53065Z" fill="white"/></svg>';
       }
       updateSendButton();
     }
     
+    // Auto-resize function for contenteditable
+    function autoResize() {
+      chatInput.style.height = 'auto';
+      const scrollHeight = chatInput.scrollHeight;
+      const maxHeight = 148; // matches CSS max-height
+      chatInput.style.height = Math.min(scrollHeight, maxHeight) + 'px';
+    }
+    
     // Handle input changes
-    chatInput.addEventListener('input', updateSendButton);
+    chatInput.addEventListener('input', () => {
+      updateSendButton();
+      autoResize();
+    });
     
     // Handle send button click
     sendButton.addEventListener('click', () => {
-      const message = chatInput.value.trim();
+      const message = chatInput.textContent.trim();
       if (message && !sendButton.classList.contains('loading')) {
         setLoading(true);
         clearResponse();
@@ -464,7 +392,7 @@
           } 
         }, '*');
         
-        chatInput.value = '';
+        chatInput.textContent = '';
         updateSendButton();
       }
     });
@@ -476,6 +404,9 @@
         sendButton.click();
       }
     });
+    
+    // Initialize the input height
+    autoResize();
     
     // Selection counter display updates
     const selectionBanner = document.getElementById('selection-banner');
@@ -504,7 +435,7 @@
       if (event.data.pluginMessage && event.data.pluginMessage.type === 'chat-response') {
         // Handle chat response from plugin
         const response = event.data.pluginMessage;
-        setLoading(false);
+        setLoading(response.loading);
         
         if (response.success) {
           if (response.loading) {
@@ -522,129 +453,71 @@
       if (event.data.pluginMessage && event.data.pluginMessage.type === 'api-key-loaded') {
         // Load saved API key into input
         const savedApiKey = event.data.pluginMessage.apiKey;
-        apiKeyInput.value = savedApiKey;
-        updateApiKeyStatus(savedApiKey);
-      }
-      
-      if (event.data.pluginMessage && event.data.pluginMessage.type === 'config-loaded') {
-        // Load saved configuration into inputs
-        const config = event.data.pluginMessage.config;
-        modelSelect.value = config.model;
-        temperatureSlider.value = config.temperature;
-        temperatureValue.textContent = config.temperature;
-        maxTokensInput.value = config.max_tokens;
+        apiKeyInputModal.value = savedApiKey;
+        updateApiKeyStatusModal(savedApiKey);
       }
     });
     
     // Request initial selection count
     parent.postMessage({ pluginMessage: { type: 'get-selection-count' } }, '*');
     
-    // Accordion functionality
-    const accordionHeader = document.getElementById('accordion-header');
-    const accordionContent = document.getElementById('accordion-content');
-    const accordionIcon = document.getElementById('accordion-icon');
-    const apiKeyInput = document.getElementById('api-key-input');
-    const apiKeyStatus = document.getElementById('api-key-status');
-    
-    // Config controls
-    const modelSelect = document.getElementById('model-select');
-    const temperatureSlider = document.getElementById('temperature-slider');
-    const temperatureValue = document.getElementById('temperature-value');
-    const maxTokensInput = document.getElementById('max-tokens-input');
-    
-    let isAccordionExpanded = false;
-    
-    // Toggle accordion
-    function toggleAccordion() {
-      isAccordionExpanded = !isAccordionExpanded;
-      
-      if (isAccordionExpanded) {
-        accordionContent.classList.add('expanded');
-        accordionIcon.classList.add('expanded');
-      } else {
-        accordionContent.classList.remove('expanded');
-        accordionIcon.classList.remove('expanded');
-      }
-    }
-    
+    // Remove accordion and config controls
+    // Add modal logic
+    const keyIcon = document.getElementById('key-icon');
+    const apiKeyModal = document.getElementById('api-key-modal');
+    const apiKeyInputModal = document.getElementById('api-key-input-modal');
+    const apiKeyStatusModal = document.getElementById('api-key-status-modal');
+    const saveApiKeyModal = document.getElementById('save-api-key-modal');
+    const closeModal = document.getElementById('close-modal');
 
-    
-    // Validate API key format
+    // Remove Save button logic, add auto-save and status logic
+    let apiKeyInputModalSaveTimeout;
+    keyIcon.addEventListener('click', () => {
+      apiKeyModal.style.display = 'flex';
+      // Request the saved API key from the plugin
+      parent.postMessage({ pluginMessage: { type: 'get-api-key' } }, '*');
+    });
+    closeModal.addEventListener('click', () => {
+      apiKeyModal.style.display = 'none';
+    });
+    apiKeyModal.addEventListener('click', (e) => {
+      if (e.target === apiKeyModal) apiKeyModal.style.display = 'none';
+    });
     function validateApiKey(key) {
-      // Basic OpenAI API key validation (starts with sk- and has reasonable length)
       return key.startsWith('sk-') && key.length > 20;
     }
-    
-    // Update API key status
-    function updateApiKeyStatus(key) {
+    function updateApiKeyStatusModal(key) {
       if (!key) {
-        apiKeyStatus.className = 'api-key-status';
-        apiKeyStatus.textContent = '';
+        apiKeyStatusModal.className = 'api-key-status';
+        apiKeyStatusModal.textContent = '';
         return;
       }
-      
       if (validateApiKey(key)) {
-        apiKeyStatus.className = 'api-key-status valid';
-        apiKeyStatus.textContent = '✓ Valid API key format';
+        apiKeyStatusModal.className = 'api-key-status valid';
+        apiKeyStatusModal.textContent = '✓ Valid API key format';
       } else {
-        apiKeyStatus.className = 'api-key-status invalid';
-        apiKeyStatus.textContent = '✗ Invalid API key format';
+        apiKeyStatusModal.className = 'api-key-status invalid';
+        apiKeyStatusModal.textContent = '✗ Invalid API key format';
       }
     }
-    
-    // Save API key to plugin
-    function saveApiKey(key) {
-      parent.postMessage({ 
-        pluginMessage: { 
-          type: 'save-api-key',
-          apiKey: key 
-        } 
-      }, '*');
-    }
-    
-    // Save configuration to plugin
-    function saveConfig() {
-      const config = {
-        model: modelSelect.value,
-        temperature: parseFloat(temperatureSlider.value),
-        max_tokens: parseInt(maxTokensInput.value)
-      };
-      
-      parent.postMessage({ 
-        pluginMessage: { 
-          type: 'save-config',
-          config: config 
-        } 
-      }, '*');
-    }
-    
-    // Event listeners
-    accordionHeader.addEventListener('click', toggleAccordion);
-    
-    // Temperature slider
-    temperatureSlider.addEventListener('input', (e) => {
-      temperatureValue.textContent = e.target.value;
-    });
-    
-    // Config change handlers
-    modelSelect.addEventListener('change', saveConfig);
-    temperatureSlider.addEventListener('change', saveConfig);
-    maxTokensInput.addEventListener('change', saveConfig);
-    
-    apiKeyInput.addEventListener('input', (e) => {
+    apiKeyInputModal.addEventListener('input', (e) => {
       const key = e.target.value;
-      updateApiKeyStatus(key);
-      
-      // Save key after a short delay (debounce)
-      clearTimeout(apiKeyInput.saveTimeout);
-      apiKeyInput.saveTimeout = setTimeout(() => {
-        saveApiKey(key);
+      updateApiKeyStatusModal(key);
+      clearTimeout(apiKeyInputModalSaveTimeout);
+      apiKeyInputModalSaveTimeout = setTimeout(() => {
+        if (validateApiKey(key)) {
+          parent.postMessage({ pluginMessage: { type: 'save-api-key', apiKey: key } }, '*');
+        }
       }, 500);
     });
-    
-    // Load saved API key and config from plugin
-    parent.postMessage({ pluginMessage: { type: 'get-api-key' } }, '*');
-    parent.postMessage({ pluginMessage: { type: 'get-config' } }, '*');
+    // When receiving the saved API key, show it masked and update status
+    window.addEventListener('message', (event) => {
+      if (event.data.pluginMessage && event.data.pluginMessage.type === 'api-key-loaded') {
+        const savedApiKey = event.data.pluginMessage.apiKey;
+        apiKeyInputModal.value = savedApiKey || '';
+        updateApiKeyStatusModal(savedApiKey);
+      }
+    });
   </script>
 </body>
 </html> 
