@@ -376,19 +376,22 @@ async function handleSendChatMessage(msg: any): Promise<void> {
     const aiResponse = await callChatGPT(apiKey, msg.message, selectedTextCount);
     
     let result;
-    if (selectedTextCount > 0 && aiResponse.isArray && aiResponse.items) {
-      // Check if we have enough items
-      if (aiResponse.items.length >= selectedTextCount) {
+    if (selectedTextCount > 0) {
+      if (aiResponse.isArray && aiResponse.items && aiResponse.items.length >= selectedTextCount) {
         // Replace selected text elements with array items
         result = await replaceSelectedTextElements(aiResponse.items);
         figma.notify(`✅ Replaced ${selectedTextCount} text elements`);
+      } else if (!aiResponse.isArray && selectedTextCount === 1) {
+        // Single text element selected, and response is a string: replace it
+        result = await replaceSelectedTextElements([aiResponse.content]);
+        figma.notify('✅ Replaced 1 text element');
       } else {
-        // Not enough items - create new text element with the response
+        // Not enough items or unexpected response - create new text element
         result = await createTextElement(aiResponse.content);
-        figma.notify(`⚠️ Only ${aiResponse.items.length} items received for ${selectedTextCount} text elements. Created new text element instead.`);
+        figma.notify('✅ AI response added to canvas');
       }
     } else {
-      // Create new text element
+      // No text elements selected, create new text element
       result = await createTextElement(aiResponse.content);
       figma.notify('✅ AI response added to canvas');
     }
