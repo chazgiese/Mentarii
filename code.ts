@@ -440,7 +440,12 @@ async function handleMessage(msg: PluginMessage): Promise<void> {
     case 'send-chat-message':
       await handleSendChatMessage(msg);
       break;
-      
+    case 'notify':
+      // Handle notify messages from UI
+      if (typeof msg.message === 'string') {
+        figma.notify(msg.message, msg.options);
+      }
+      break;
     default:
       console.warn('Unknown message type:', msg.type);
   }
