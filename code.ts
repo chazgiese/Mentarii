@@ -376,13 +376,13 @@ async function handleSendChatMessage(msg: any): Promise<void> {
     sendChatResponse(true, '🤔 Thinking...', true);
     
     // Get selected text elements count
-    const selectedTextCount = await getSelectedTextElementsCount();
-    
+    let selectedTextCount = await getSelectedTextElementsCount();
+    if (selectedTextCount < 1) selectedTextCount = 1;
     // Call ChatGPT API
     const aiResponse = await callChatGPT(apiKey, msg.message, selectedTextCount);
     
     let result;
-    if (selectedTextCount > 0) {
+    if (selectedTextCount > 0 && (await getSelectedTextElementsCount()) > 0) {
       if (aiResponse.isArray && aiResponse.items && aiResponse.items.length >= selectedTextCount) {
         // Replace selected text elements with array items
         result = await replaceSelectedTextElements(aiResponse.items);
@@ -397,8 +397,12 @@ async function handleSendChatMessage(msg: any): Promise<void> {
         figma.notify('✅ AI response added to canvas');
       }
     } else {
-      // No text elements selected, create new text element
-      result = await createTextElement(aiResponse.content);
+      // No text elements selected, create new text element with first item from array
+      if (aiResponse.isArray && aiResponse.items && aiResponse.items.length > 0) {
+        result = await createTextElement(String(aiResponse.items[0]));
+      } else {
+        result = await createTextElement(aiResponse.content);
+      }
       figma.notify('✅ AI response added to canvas');
     }
     
