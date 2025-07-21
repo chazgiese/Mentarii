@@ -12,14 +12,8 @@
       overflow-y: auto;
     }
     
-    h2 {
-      margin: 0 0 20px 0;
-      font-size: 18px;
-      font-weight: 600;
-    }
-    
     .chat-section {
-      margin-top: 24px;
+      margin: 0px;
     }
     
     .chat-input-container {
@@ -45,17 +39,40 @@
       white-space: pre-wrap;
       outline: none;
     }
-    
     .chat-input:focus {
       outline: none;
     }
-    
     .chat-input[data-placeholder]:empty:before {
       content: attr(data-placeholder);
       color: var(--figma-color-text-disabled);
       pointer-events: none;
     }
-    
+
+    .chat-button {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: none;
+      border: none;
+      border-radius: 16px;
+      position: absolute;
+      height: 32px;
+      width: 32px;
+      bottom: 8px;
+      left: 8px;
+      font-size: 20px;
+      cursor: pointer;
+    }
+    .chat-button:hover {
+      background: var(--figma-color-bg-tertiary);
+    }
+    .chat-button svg {
+      width: 16px;
+      height: 16px;
+      display: block;
+      fill: var(--figma-color-text);
+    }
+
     .send-button {
       width: 32px;
       height: 32px;
@@ -83,110 +100,12 @@
       width: 16px;
       height: 16px;
       display: block;
-      fill: var(--figma-color-text-on-brand);
+      fill: var(--figma-color-icon-onbrand);
     }
     .send-button.loading {
       background: #6C757D;
       cursor: not-allowed;
     }
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-
-    .chat-button {
-      background: none;
-      border: none;
-      position: absolute;
-      height: 32px;
-      width: 32px;
-      bottom: 8px;
-      left: 8px;
-      font-size: 20px;
-      cursor: pointer;
-    }
-    
-    .api-key-input {
-      width: 100%;
-      padding: 10px 12px;
-      border: 1px solid #E5E5E5;
-      border-radius: 6px;
-      font-size: 14px;
-      font-family: 'Courier New', monospace;
-      box-sizing: border-box;
-    }
-    
-    .api-key-input:focus {
-      outline: none;
-      border-color: #18A0FB;
-      box-shadow: 0 0 0 2px rgba(24, 160, 251, 0.1);
-    }
-    
-    .api-key-label {
-      display: block;
-      font-size: 12px;
-      color: #666;
-      margin-bottom: 8px;
-      font-weight: 500;
-    }
-    
-    .api-key-status {
-      font-size: 12px;
-      margin-top: 8px;
-      padding: 6px 10px;
-      border-radius: 4px;
-      display: none;
-    }
-    
-    .api-key-status.valid {
-      background: #D4EDDA;
-      color: #155724;
-      border: 1px solid #C3E6CB;
-      display: block;
-    }
-    
-    .api-key-status.invalid {
-      background: #F8D7DA;
-      color: #721C24;
-      border: 1px solid #F5C6CB;
-      display: block;
-    }
-    
-    .response-area {
-      margin-top: 12px;
-      padding: 12px;
-      border-radius: 6px;
-      font-size: 14px;
-      line-height: 1.4;
-      display: none;
-    }
-    
-    .response-area.success {
-      background: #D4EDDA;
-      color: #155724;
-      border: 1px solid #C3E6CB;
-      display: block;
-    }
-    
-    .response-area.error {
-      background: #F8D7DA;
-      color: #721C24;
-      border: 1px solid #F5C6CB;
-      display: block;
-    }
-    
-    .response-area.loading {
-      background: #D1ECF1;
-      color: #0C5460;
-      border: 1px solid #BEE5EB;
-      display: block;
-    }
-    
-    .send-button.loading {
-      background: #6C757D;
-      cursor: not-allowed;
-    }
-    
     .send-button.loading::after {
       content: '';
       display: inline-block;
@@ -198,10 +117,128 @@
       animation: spin 1s linear infinite;
       margin-left: 8px;
     }
-    
+    .send-button:disabled {
+      background: var(--figma-color-bg-disabled);
+      color: var(--figma-color-icon-ondisabled);
+      cursor: auto;
+      fill: var(--figma-color-icon-ondisabled);
+    }
     @keyframes spin {
       0% { transform: rotate(0deg); }
       100% { transform: rotate(360deg); }
+    }
+    
+    .api-key-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0,0,0,0.4);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+    .api-key-modal-content {
+      background: var(--figma-color-bg);
+      padding: 0px;
+      border-radius: 12px;
+      box-shadow: 0 2px 16px rgba(0,0,0,0.15);
+      min-width: 320px;
+      position: relative;
+    }
+    .api-key-modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0px 20px;
+      border-bottom: 1px solid var(--figma-color-border);
+      height: 40px;
+      font-size: 11px;
+      letter-spacing: 1%;
+    }
+    .close-modal {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      background: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 24px;
+      width: 24px;
+      border: none;
+      border-radius: 4px;
+      cursor: auto;
+      padding: 0px;
+    }
+    .close-modal svg {
+      fill: var(--figma-color-icon);
+    }
+    .close-modal:hover {
+      background-color: var(--figma-color-bg-hover);
+    }
+    .api-key-modal-body {
+      padding: 20px;
+      position: relative;
+    }
+    .api-key-input {
+      width: 100%;
+      background-color: var(--figma-color-bg-secondary);
+      padding: 8px 32px 8px 8px;
+      border: none;
+      border-radius: 6px;
+      font-size: 13px;
+      line-height: 20px;
+      font-family: monospace;
+      box-sizing: border-box;
+      color: var(--figma-color-text);
+    }
+    .api-key-input:focus {
+      outline: none;
+      border-color: none;
+      box-shadow: none;
+    }
+    .api-key-status {
+      font-size: 12px;
+      padding: 0px;
+      border-radius: 4px;
+      width: 16px;
+      height: 16px;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
+      position: absolute;
+      top: 30px;
+      right: 28px;
+    }
+    .api-key-status.valid {
+      background: var(--figma-color-bg-success);
+      color: var(--figma-color-icon-oninverse);
+      display: flex;
+    }
+    .api-key-status.invalid {
+      background: var(--figma-color-bg-danger);
+      color: var(--figma-color-icon-oninverse);
+      display: flex;
+    }
+    .api-key-info {
+      font-size: 11px;
+      line-height: 16px;
+      padding: 0px;
+      color: var(--figma-color-text-disabled);
+      text-decoration: none;
+      display: block;
+      margin-top: 8px;
+    }
+    .api-key-info a {
+      color: var(--figma-color-text-brand);
+      text-decoration: none;
+    }
+    .api-key-info a:hover {
+      text-decoration: underline;
     }
   </style>
 </head>
@@ -217,13 +254,13 @@
           class="chat-input" 
           id="chat-input" 
           contenteditable="true"
-          data-placeholder="Type your message here..."
+          data-placeholder="Et tu, Prompte?"
         ></div>
-        <button class="chat-button" id="key-icon" style="float: right; cursor: pointer; font-size: 20px; margin-top: 4px;" title="Set API Key">
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M2.5 5.49998H4.5625C4.67265 5.93019 4.92285 6.3115 5.27365 6.5838C5.62446 6.85611 6.05591 7.00391 6.5 7.00391C6.94409 7.00391 7.37554 6.85611 7.72635 6.5838C8.07715 6.3115 8.32735 5.93019 8.4375 5.49998H13.5C13.6326 5.49998 13.7598 5.44731 13.8536 5.35354C13.9473 5.25977 14 5.13259 14 4.99998C14 4.86738 13.9473 4.7402 13.8536 4.64643C13.7598 4.55266 13.6326 4.49998 13.5 4.49998H8.4375C8.32735 4.06978 8.07715 3.68847 7.72635 3.41617C7.37554 3.14386 6.94409 2.99606 6.5 2.99606C6.05591 2.99606 5.62446 3.14386 5.27365 3.41617C4.92285 3.68847 4.67265 4.06978 4.5625 4.49998H2.5C2.36739 4.49998 2.24021 4.55266 2.14645 4.64643C2.05268 4.7402 2 4.86738 2 4.99998C2 5.13259 2.05268 5.25977 2.14645 5.35354C2.24021 5.44731 2.36739 5.49998 2.5 5.49998ZM6.5 3.99998C6.69778 3.99998 6.89112 4.05863 7.05557 4.16852C7.22002 4.2784 7.34819 4.43458 7.42388 4.6173C7.49957 4.80003 7.51937 5.00109 7.48079 5.19508C7.4422 5.38906 7.34696 5.56724 7.20711 5.70709C7.06725 5.84694 6.88907 5.94219 6.69509 5.98077C6.50111 6.01936 6.30004 5.99955 6.11732 5.92386C5.93459 5.84818 5.77841 5.72 5.66853 5.55556C5.55865 5.39111 5.5 5.19777 5.5 4.99998C5.5 4.73477 5.60536 4.48041 5.79289 4.29288C5.98043 4.10534 6.23478 3.99998 6.5 3.99998ZM13.5 10.5H12.4375C12.3273 10.0698 12.0771 9.68847 11.7263 9.41617C11.3755 9.14386 10.9441 8.99606 10.5 8.99606C10.0559 8.99606 9.62446 9.14386 9.27365 9.41617C8.92285 9.68847 8.67265 10.0698 8.5625 10.5H2.5C2.36739 10.5 2.24021 10.5527 2.14645 10.6464C2.05268 10.7402 2 10.8674 2 11C2 11.1326 2.05268 11.2598 2.14645 11.3535C2.24021 11.4473 2.36739 11.5 2.5 11.5H8.5625C8.67265 11.9302 8.92285 12.3115 9.27365 12.5838C9.62446 12.8561 10.0559 13.0039 10.5 13.0039C10.9441 13.0039 11.3755 12.8561 11.7263 12.5838C12.0771 12.3115 12.3273 11.9302 12.4375 11.5H13.5C13.6326 11.5 13.7598 11.4473 13.8536 11.3535C13.9473 11.2598 14 11.1326 14 11C14 10.8674 13.9473 10.7402 13.8536 10.6464C13.7598 10.5527 13.6326 10.5 13.5 10.5ZM10.5 12C10.3022 12 10.1089 11.9413 9.94443 11.8315C9.77998 11.7216 9.65181 11.5654 9.57612 11.3827C9.50043 11.1999 9.48063 10.9989 9.51921 10.8049C9.5578 10.6109 9.65304 10.4327 9.79289 10.2929C9.93275 10.153 10.1109 10.0578 10.3049 10.0192C10.4989 9.98061 10.7 10.0004 10.8827 10.0761C11.0654 10.1518 11.2216 10.28 11.3315 10.4444C11.4414 10.6089 11.5 10.8022 11.5 11C11.5 11.2652 11.3946 11.5196 11.2071 11.7071C11.0196 11.8946 10.7652 12 10.5 12Z" fill="white"/></svg>
+        <button class="chat-button" id="key-icon" title="Set API Key">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M2.5 5.49998H4.5625C4.67265 5.93019 4.92285 6.3115 5.27365 6.5838C5.62446 6.85611 6.05591 7.00391 6.5 7.00391C6.94409 7.00391 7.37554 6.85611 7.72635 6.5838C8.07715 6.3115 8.32735 5.93019 8.4375 5.49998H13.5C13.6326 5.49998 13.7598 5.44731 13.8536 5.35354C13.9473 5.25977 14 5.13259 14 4.99998C14 4.86738 13.9473 4.7402 13.8536 4.64643C13.7598 4.55266 13.6326 4.49998 13.5 4.49998H8.4375C8.32735 4.06978 8.07715 3.68847 7.72635 3.41617C7.37554 3.14386 6.94409 2.99606 6.5 2.99606C6.05591 2.99606 5.62446 3.14386 5.27365 3.41617C4.92285 3.68847 4.67265 4.06978 4.5625 4.49998H2.5C2.36739 4.49998 2.24021 4.55266 2.14645 4.64643C2.05268 4.7402 2 4.86738 2 4.99998C2 5.13259 2.05268 5.25977 2.14645 5.35354C2.24021 5.44731 2.36739 5.49998 2.5 5.49998ZM6.5 3.99998C6.69778 3.99998 6.89112 4.05863 7.05557 4.16852C7.22002 4.2784 7.34819 4.43458 7.42388 4.6173C7.49957 4.80003 7.51937 5.00109 7.48079 5.19508C7.4422 5.38906 7.34696 5.56724 7.20711 5.70709C7.06725 5.84694 6.88907 5.94219 6.69509 5.98077C6.50111 6.01936 6.30004 5.99955 6.11732 5.92386C5.93459 5.84818 5.77841 5.72 5.66853 5.55556C5.55865 5.39111 5.5 5.19777 5.5 4.99998C5.5 4.73477 5.60536 4.48041 5.79289 4.29288C5.98043 4.10534 6.23478 3.99998 6.5 3.99998ZM13.5 10.5H12.4375C12.3273 10.0698 12.0771 9.68847 11.7263 9.41617C11.3755 9.14386 10.9441 8.99606 10.5 8.99606C10.0559 8.99606 9.62446 9.14386 9.27365 9.41617C8.92285 9.68847 8.67265 10.0698 8.5625 10.5H2.5C2.36739 10.5 2.24021 10.5527 2.14645 10.6464C2.05268 10.7402 2 10.8674 2 11C2 11.1326 2.05268 11.2598 2.14645 11.3535C2.24021 11.4473 2.36739 11.5 2.5 11.5H8.5625C8.67265 11.9302 8.92285 12.3115 9.27365 12.5838C9.62446 12.8561 10.0559 13.0039 10.5 13.0039C10.9441 13.0039 11.3755 12.8561 11.7263 12.5838C12.0771 12.3115 12.3273 11.9302 12.4375 11.5H13.5C13.6326 11.5 13.7598 11.4473 13.8536 11.3535C13.9473 11.2598 14 11.1326 14 11C14 10.8674 13.9473 10.7402 13.8536 10.6464C13.7598 10.5527 13.6326 10.5 13.5 10.5ZM10.5 12C10.3022 12 10.1089 11.9413 9.94443 11.8315C9.77998 11.7216 9.65181 11.5654 9.57612 11.3827C9.50043 11.1999 9.48063 10.9989 9.51921 10.8049C9.5578 10.6109 9.65304 10.4327 9.79289 10.2929C9.93275 10.153 10.1109 10.0578 10.3049 10.0192C10.4989 9.98061 10.7 10.0004 10.8827 10.0761C11.0654 10.1518 11.2216 10.28 11.3315 10.4444C11.4414 10.6089 11.5 10.8022 11.5 11C11.5 11.2652 11.3946 11.5196 11.2071 11.7071C11.0196 11.8946 10.7652 12 10.5 12Z" fill="inherit"/></svg>
         </button>
         <button class="send-button" id="send-button" disabled aria-label="Send">
-          <svg id="send-arrow" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M13.0306 7.53065C12.9609 7.60057 12.8781 7.65605 12.787 7.6939C12.6958 7.73176 12.5981 7.75124 12.4993 7.75124C12.4006 7.75124 12.3029 7.73176 12.2117 7.6939C12.1206 7.65605 12.0378 7.60057 11.9681 7.53065L8.74997 4.31253V13.5C8.74997 13.6989 8.67095 13.8897 8.5303 14.0304C8.38965 14.171 8.19888 14.25 7.99997 14.25C7.80106 14.25 7.61029 14.171 7.46964 14.0304C7.32899 13.8897 7.24997 13.6989 7.24997 13.5V4.31253L4.0306 7.53065C3.8897 7.67155 3.69861 7.7507 3.49935 7.7507C3.30009 7.7507 3.10899 7.67155 2.9681 7.53065C2.8272 7.38975 2.74805 7.19866 2.74805 6.9994C2.74805 6.80014 2.8272 6.60905 2.9681 6.46815L7.4681 1.96815C7.53778 1.89823 7.62057 1.84275 7.71173 1.8049C7.8029 1.76704 7.90064 1.74756 7.99935 1.74756C8.09806 1.74756 8.1958 1.76704 8.28696 1.8049C8.37813 1.84275 8.46092 1.89823 8.5306 1.96815L13.0306 6.46815C13.1005 6.53783 13.156 6.62062 13.1938 6.71179C13.2317 6.80295 13.2512 6.90069 13.2512 6.9994C13.2512 7.09811 13.2317 7.19585 13.1938 7.28701C13.156 7.37818 13.1005 7.46097 13.0306 7.53065Z" fill="white"/></svg>
+          <svg id="send-arrow" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M13.0306 7.53065C12.9609 7.60057 12.8781 7.65605 12.787 7.6939C12.6958 7.73176 12.5981 7.75124 12.4993 7.75124C12.4006 7.75124 12.3029 7.73176 12.2117 7.6939C12.1206 7.65605 12.0378 7.60057 11.9681 7.53065L8.74997 4.31253V13.5C8.74997 13.6989 8.67095 13.8897 8.5303 14.0304C8.38965 14.171 8.19888 14.25 7.99997 14.25C7.80106 14.25 7.61029 14.171 7.46964 14.0304C7.32899 13.8897 7.24997 13.6989 7.24997 13.5V4.31253L4.0306 7.53065C3.8897 7.67155 3.69861 7.7507 3.49935 7.7507C3.30009 7.7507 3.10899 7.67155 2.9681 7.53065C2.8272 7.38975 2.74805 7.19866 2.74805 6.9994C2.74805 6.80014 2.8272 6.60905 2.9681 6.46815L7.4681 1.96815C7.53778 1.89823 7.62057 1.84275 7.71173 1.8049C7.8029 1.76704 7.90064 1.74756 7.99935 1.74756C8.09806 1.74756 8.1958 1.76704 8.28696 1.8049C8.37813 1.84275 8.46092 1.89823 8.5306 1.96815L13.0306 6.46815C13.1005 6.53783 13.156 6.62062 13.1938 6.71179C13.2317 6.80295 13.2512 6.90069 13.2512 6.9994C13.2512 7.09811 13.2317 7.19585 13.1938 7.28701C13.156 7.37818 13.1005 7.46097 13.0306 7.53065Z" fill="inherit"/></svg>
         </button>
       </div>
       
@@ -231,19 +268,25 @@
     </div>
 
     <!-- API Key Modal -->
-    <div id="api-key-modal" style="display:none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.2); z-index: 1000; align-items: center; justify-content: center;">
-      <div style="background: white; padding: 24px 20px 20px 20px; border-radius: 8px; box-shadow: 0 2px 16px rgba(0,0,0,0.15); min-width: 320px; position: relative;">
-        <button id="close-modal" style="position: absolute; top: 8px; right: 8px; background: none; border: none; font-size: 18px; cursor: pointer;">&times;</button>
-        <label class="api-key-label" for="api-key-input-modal">OpenAI API Key</label>
-        <input 
+    <div id="api-key-modal" class="api-key-modal">
+      <div class="api-key-modal-content">
+        <div class="api-key-modal-header">
+          <div class="api-key-modal-title">OpenAI API Key</div>
+          <button id="close-modal" class="close-modal">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12.8535 12.1462C12.9 12.1927 12.9368 12.2478 12.962 12.3085C12.9871 12.3692 13.0001 12.4343 13.0001 12.5C13.0001 12.5657 12.9871 12.6307 12.962 12.6914C12.9368 12.7521 12.9 12.8073 12.8535 12.8537C12.8071 12.9002 12.7519 12.937 12.6912 12.9622C12.6305 12.9873 12.5655 13.0003 12.4998 13.0003C12.4341 13.0003 12.369 12.9873 12.3083 12.9622C12.2476 12.937 12.1925 12.9002 12.146 12.8537L7.99979 8.70685L3.85354 12.8537C3.75972 12.9475 3.63247 13.0003 3.49979 13.0003C3.36711 13.0003 3.23986 12.9475 3.14604 12.8537C3.05222 12.7599 2.99951 12.6327 2.99951 12.5C2.99951 12.3673 3.05222 12.24 3.14604 12.1462L7.29291 7.99997L3.14604 3.85372C3.05222 3.7599 2.99951 3.63265 2.99951 3.49997C2.99951 3.36729 3.05222 3.24004 3.14604 3.14622C3.23986 3.0524 3.36711 2.99969 3.49979 2.99969C3.63247 2.99969 3.75972 3.0524 3.85354 3.14622L7.99979 7.2931L12.146 3.14622C12.2399 3.0524 12.3671 2.99969 12.4998 2.99969C12.6325 2.99969 12.7597 3.0524 12.8535 3.14622C12.9474 3.24004 13.0001 3.36729 13.0001 3.49997C13.0001 3.63265 12.9474 3.7599 12.8535 3.85372L8.70666 7.99997L12.8535 12.1462Z" fill="inherit"/></svg>
+          </button>
+        </div>
+        <div class="api-key-modal-body">
+          <input 
           type="password" 
           class="api-key-input" 
           id="api-key-input-modal" 
           placeholder="sk-..."
           autocomplete="off"
-          style="margin-bottom: 12px;"
-        />
-        <div class="api-key-status" id="api-key-status-modal"></div>
+          />
+          <div class="api-key-status" id="api-key-status-modal"></div>
+          <div class="api-key-info">Keys are stored locally and only sent to OpenAI.</br><a href="https://chatgpt.com/canvas/shared/687ead3443688191840cc7e8bb6087c5" target="_blank">API key guide</a></div>
+        </div>
       </div>
     </div>
   </div>
@@ -271,7 +314,7 @@
         // showResponse('🤔 Thinking...', 'loading'); // removed
       } else {
         sendButton.classList.remove('loading');
-        sendButton.innerHTML = '<svg id="send-arrow" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M13.0306 7.53065C12.9609 7.60057 12.8781 7.65605 12.787 7.6939C12.6958 7.73176 12.5981 7.75124 12.4993 7.75124C12.4006 7.75124 12.3029 7.73176 12.2117 7.6939C12.1206 7.65605 12.0378 7.60057 11.9681 7.53065L8.74997 4.31253V13.5C8.74997 13.6989 8.67095 13.8897 8.5303 14.0304C8.38965 14.171 8.19888 14.25 7.99997 14.25C7.80106 14.25 7.61029 14.171 7.46964 14.0304C7.32899 13.8897 7.24997 13.6989 7.24997 13.5V4.31253L4.0306 7.53065C3.8897 7.67155 3.69861 7.7507 3.49935 7.7507C3.30009 7.7507 3.10899 7.67155 2.9681 7.53065C2.8272 7.38975 2.74805 7.19866 2.74805 6.9994C2.74805 6.80014 2.8272 6.60905 2.9681 6.46815L7.4681 1.96815C7.53778 1.89823 7.62057 1.84275 7.71173 1.8049C7.8029 1.76704 7.90064 1.74756 7.99935 1.74756C8.09806 1.74756 8.1958 1.76704 8.28696 1.8049C8.37813 1.84275 8.46092 1.89823 8.5306 1.96815L13.0306 6.46815C13.1005 6.53783 13.156 6.62062 13.1938 6.71179C13.2317 6.80295 13.2512 6.90069 13.2512 6.9994C13.2512 7.09811 13.2317 7.19585 13.1938 7.28701C13.156 7.37818 13.1005 7.46097 13.0306 7.53065Z" fill="white"/></svg>';
+        sendButton.innerHTML = '<svg id="send-arrow" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M13.0306 7.53065C12.9609 7.60057 12.8781 7.65605 12.787 7.6939C12.6958 7.73176 12.5981 7.75124 12.4993 7.75124C12.4006 7.75124 12.3029 7.73176 12.2117 7.6939C12.1206 7.65605 12.0378 7.60057 11.9681 7.53065L8.74997 4.31253V13.5C8.74997 13.6989 8.67095 13.8897 8.5303 14.0304C8.38965 14.171 8.19888 14.25 7.99997 14.25C7.80106 14.25 7.61029 14.171 7.46964 14.0304C7.32899 13.8897 7.24997 13.6989 7.24997 13.5V4.31253L4.0306 7.53065C3.8897 7.67155 3.69861 7.7507 3.49935 7.7507C3.30009 7.7507 3.10899 7.67155 2.9681 7.53065C2.8272 7.38975 2.74805 7.19866 2.74805 6.9994C2.74805 6.80014 2.8272 6.60905 2.9681 6.46815L7.4681 1.96815C7.53778 1.89823 7.62057 1.84275 7.71173 1.8049C7.8029 1.76704 7.90064 1.74756 7.99935 1.74756C8.09806 1.74756 8.1958 1.76704 8.28696 1.8049C8.37813 1.84275 8.46092 1.89823 8.5306 1.96815L13.0306 6.46815C13.1005 6.53783 13.156 6.62062 13.1938 6.71179C13.2317 6.80295 13.2512 6.90069 13.2512 6.9994C13.2512 7.09811 13.2317 7.19585 13.1938 7.28701C13.156 7.37818 13.1005 7.46097 13.0306 7.53065Z" fill="inherit"/></svg>';
       }
       updateSendButton();
     }
@@ -386,10 +429,10 @@
       }
       if (validateApiKey(key)) {
         apiKeyStatusModal.className = 'api-key-status valid';
-        apiKeyStatusModal.textContent = '✓ Valid API key format';
+        apiKeyStatusModal.textContent = '✓';
       } else {
         apiKeyStatusModal.className = 'api-key-status invalid';
-        apiKeyStatusModal.textContent = '✗ Invalid API key format';
+        apiKeyStatusModal.textContent = '✗';
       }
     }
     apiKeyInputModal.addEventListener('input', (e) => {

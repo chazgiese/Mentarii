@@ -458,7 +458,7 @@ async function handleMessage(msg: PluginMessage): Promise<void> {
 // Initialize the plugin
 figma.showUI(__html__, { 
   width: 400, 
-  height: 500,
+  height: 188,
   themeColors: true
 });
 
