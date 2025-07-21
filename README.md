@@ -10,7 +10,8 @@ An AI-powered ghostwriter plugin for Figma that generates text content using Ope
 
 - ✅ **AI Ghostwriting** - Generate text content with ChatGPT integration
 - ✅ **Smart Text Replacement** - Replace selected text elements with AI-generated content
-- ✅ **Precise Item Matching** - AI generates exactly the number of items you need
+- ✅ **Precise Array Matching** - AI always generates a plain JSON array with at least as many items as you need
+- ✅ **Strict JSON Output** - All AI responses are plain, unwrapped JSON arrays (never objects, never wrapped, never with keys)
 - ✅ **Secure API Key Storage** - API keys stored locally in Figma's client storage
 - ✅ **Configurable AI Settings** - Adjust model, temperature, and token limits
 - ✅ **Position-Aware Replacement** - Maintains visual layout when replacing multiple elements
@@ -54,7 +55,7 @@ An AI-powered ghostwriter plugin for Figma that generates text content using Ope
 ### Smart Text Replacement
 1. **Select existing text elements** on your canvas
 2. **Ask for a list or multiple items** (e.g., "a list of dates in descending order")
-3. **AI generates exactly the right number** of items to match your selection
+3. **AI generates a plain JSON array** with at least as many items as your selection
 4. **Each selected text element** gets replaced with a corresponding item
 5. **Order is preserved** based on the position of your selected elements
 
@@ -77,10 +78,11 @@ An AI-powered ghostwriter plugin for Figma that generates text content using Ope
 
 ## Smart Features
 
-### Intelligent Item Matching
+### Strict Array Output & Item Matching
 - **Counts selected text elements** automatically
-- **Instructs AI to generate exactly** the right number of items
-- **Handles insufficient responses** gracefully with fallback behavior
+- **Instructs AI to generate a plain JSON array** with at least the required number of items
+- **Never returns objects, keys, or wrapped content**—only a plain array
+- **Handles all user prompts by expanding the array as needed** to meet the minimum item count
 
 ### Position-Aware Replacement
 - **Sorts elements by position** (top to bottom, left to right)
@@ -88,9 +90,9 @@ An AI-powered ghostwriter plugin for Figma that generates text content using Ope
 - **Uses 10px tolerance** for grouping elements on the same line
 
 ### Response Format
-- **JSON-only responses** from ChatGPT
-- **Clean array output** without wrapper objects
-- **Automatic content extraction** for display
+- **Always a plain, unwrapped JSON array** (e.g., `["item1", "item2", ...]`)
+- **No objects, keys, or wrapper fields**—guaranteed by the system prompt
+- **Automatic parsing and replacement** for selected text elements
 
 ## Security
 
@@ -120,7 +122,7 @@ The plugin integrates with OpenAI's Chat Completions API:
 
 - **Endpoint**: `https://api.openai.com/v1/chat/completions`
 - **Authentication**: Bearer token with your API key
-- **System Prompt**: Configured for JSON responses and item count matching
+- **System Prompt**: Strictly enforces plain JSON array output and minimum item count
 - **Error Handling**: Comprehensive error messages for API issues
 
 ## Troubleshooting

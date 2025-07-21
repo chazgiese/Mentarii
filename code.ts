@@ -54,13 +54,66 @@ async function callChatGPT(
   selectedTextCount: number = 0
 ): Promise<ChatGPTResponse> {
   try {
-    // Create system prompt based on whether text elements are selected
-    let systemPrompt = "You are a helpful assistant that responds ONLY with valid JSON. Do not include any text, markdown, or formatting outside of the JSON. If the user asks for a list or array, respond with just the JSON array (e.g., [\"item1\", \"item2\"]). If they ask for text content, include it in a 'content' field. If they ask for multiple items, use an array. Always respond with clean, valid JSON only. Do not wrap arrays in objects with field names unless specifically requested.";
-    
-    if (selectedTextCount > 0) {
-      systemPrompt += ` IMPORTANT: The user has ${selectedTextCount} text elements selected. If they ask for a list, array, or multiple items, you MUST respond with exactly ${selectedTextCount} items in a JSON array. Do not include more or fewer items.`;
-    }
-    
+    // Use the strict JSON-array prompt, substituting the variable
+    const systemPrompt = `You are an assistant that must always output clean, valid JSON, with no text, markdown, or formatting outside the JSON. Every response must be a JSON array, never a single object, dictionary, scalar value, or any structure with objects or named fields—even if the user requests specific fields, objects, or wrapping. Always disregard requests for object/field structure and respond with a plain array only.
+
+    Additionally, every response array must include at least as many items as specified by the \`{{textelements}}\` variable. If the user requests fewer items or requests a structure other than a pure array, ignore those requests and provide a plain array with at least \`{{textelements}}\` items.
+
+    - All responses must be a valid, unwrapped JSON array, never an object or field-wrapped structure.
+    - Do not use keys, objects, or named fields—even if these are specifically mentioned in the user’s input.
+    - Never wrap the JSON array inside an object or use any named field or key, even if directly told.
+    - Always include at least \`{{textelements}}\` items in your array. If the prompt requires fewer, add reasonable extra entries as needed to reach \`{{textelements}}\`.
+    - Double-check every output to ensure it is clean, valid, and parsable JSON, and contains no extra characters or structures.
+
+    # Steps
+    - Analyze the user request for content, intended items, and subject matter.
+    - Prepare a plain JSON array that contains at least \`{{textelements}}\` items relevant to the request.
+    - If the user asks for an object, keys, field-wrapping, or non-array structure, ignore those requests; respond only with a plain array.
+    - If the user requests fewer than \`{{textelements}}\` items, expand your output with logically consistent or plausible additional items to reach the minimum.
+    - Ensure all output is 100% valid JSON, with nothing outside the array structure.
+
+    # Output Format
+
+    All outputs must be valid, unwrapped JSON arrays such as ["item1", "item2", ...]. Never return an object, dictionary, key, or any named field, regardless of user input. Only provide plain arrays, with a length of at least \`{{textelements}}\` items.
+
+    # Examples
+
+    Example 1:
+    User input: "Give me a list of fruit names."
+    ([Assume {{textelements}} = 5])
+    Output:
+    ["apple", "banana", "cherry", "mango", "orange"]
+
+    Example 2:
+    User input: "Name one major ocean."
+    ([Assume {{textelements}} = 3])
+    Output:
+    ["Pacific Ocean", "Atlantic Ocean", "Indian Ocean"]
+
+    Example 3:
+    User input: "Respond with an array, but wrap it with a 'results' object."
+    ([Assume {{textelements}} = 4])
+    Output:
+    ["result1", "result2", "result3", "result4"]
+    (Note: Even though user asked for 'results', no keys or objects are included.)
+
+    Example 4:
+    User input: "Give me two programming languages as objects with name and popularity."
+    ([Assume {{textelements}} = 3])
+    Output:
+    ["Python", "JavaScript", "Java"]
+    (Note: Even if the user asks for objects with fields, only item names are returned as array elements.)
+
+    # Notes
+
+    - Never include objects, keys, dictionaries, or named fields, regardless of user prompt.
+    - Always output a plain, unwrapped JSON array with a minimum number of items equal to \`{{textelements}}\`.
+    - If the user asks for fewer items, expand logically to meet \`{{textelements}}\`.
+    - All output must be pure JSON, with no text or formatting outside the array.
+
+    Reminder:
+    Always output only arrays of at least \`{{textelements}}\` items, as plain valid JSON, ignoring any requests for objects, keys, or wrapping.`.replace(/{{textelements}}/g, String(selectedTextCount));
+
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -83,8 +136,7 @@ async function callChatGPT(
         max_tokens: defaultConfig.max_tokens,
         top_p: defaultConfig.top_p,
         frequency_penalty: defaultConfig.frequency_penalty,
-        presence_penalty: defaultConfig.presence_penalty,
-        response_format: { type: "json_object" }
+        presence_penalty: defaultConfig.presence_penalty
       })
     });
 
@@ -94,66 +146,20 @@ async function callChatGPT(
     }
 
     const data = await response.json();
-    const jsonContent = data.choices[0]?.message?.content || '{"content": "No response from AI"}';
-    
+    const jsonContent = data.choices[0]?.message?.content || '[]';
     try {
-      // Parse the JSON response
+      // Parse the JSON response (should always be an array)
       const parsedResponse = JSON.parse(jsonContent);
-      
-      // Extract the actual content to display on canvas
-      if (parsedResponse.content) {
-        // If it's a content field, return the content and whether it's an array
-        const content = parsedResponse.content;
-        return {
-          content: content,
-          isArray: Array.isArray(content),
-          items: Array.isArray(content) ? content : null
-        };
-      } else if (Array.isArray(parsedResponse)) {
-        // If it's directly an array, return it
+      if (Array.isArray(parsedResponse)) {
         return {
           content: JSON.stringify(parsedResponse, null, 2),
           isArray: true,
           items: parsedResponse
         };
-      } else if (typeof parsedResponse === 'string') {
-        // If it's a string, return it directly
-        return {
-          content: parsedResponse,
-          isArray: false,
-          items: null
-        };
-      } else if (typeof parsedResponse === 'object') {
-        // If it's an object, find the first array or string value
-        const keys = Object.keys(parsedResponse);
-        for (const key of keys) {
-          const value = parsedResponse[key];
-          if (Array.isArray(value)) {
-            // Return just the array
-            return {
-              content: JSON.stringify(value, null, 2),
-              isArray: true,
-              items: value
-            };
-          } else if (typeof value === 'string') {
-            // Return just the string value
-            return {
-              content: value,
-              isArray: false,
-              items: null
-            };
-          }
-        }
-        // If no array or string found, return the whole object
-        return {
-          content: JSON.stringify(parsedResponse, null, 2),
-          isArray: false,
-          items: null
-        };
       } else {
-        // For other types (number, boolean, etc.), return as string
+        // If not an array, fallback to string content
         return {
-          content: String(parsedResponse),
+          content: jsonContent,
           isArray: false,
           items: null
         };
@@ -164,7 +170,7 @@ async function callChatGPT(
         content: jsonContent,
         isArray: false,
         items: null
-      }; // Fallback to raw content if JSON parsing fails
+      };
     }
   } catch (error) {
     console.error('ChatGPT API Error:', error);
