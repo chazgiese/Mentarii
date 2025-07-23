@@ -249,40 +249,106 @@ async function replaceSelectedTextElements(items: any[]) {
   if (!hasAccess) {
     throw new Error('No access to current page');
   }
-  
+
   const selection = figma.currentPage.selection;
   const textElements = selection.filter(node => node.type === 'TEXT') as TextNode[];
-  
+
   if (textElements.length === 0) {
     return null;
   }
-  
-  // Sort text elements by position (top to bottom, left to right)
-  textElements.sort((a, b) => {
-    if (Math.abs(a.y - b.y) < 10) {
-      // If y coordinates are close, sort by x
-      return a.x - b.x;
+
+  // Helper: Get ancestor chain for a node (from node up to root)
+  function getAncestors(node: BaseNode): BaseNode[] {
+    const ancestors: BaseNode[] = [];
+    let current: BaseNode | null = node.parent;
+    while (current) {
+      ancestors.push(current);
+      // @ts-ignore: Figma types
+      current = current.parent || null;
     }
-    return a.y - b.y;
-  });
-  
+    return ancestors;
+  }
+
+  // Step 1: Build ancestor chains for all selected text nodes
+  const ancestorChains = textElements.map(getAncestors);
+
+  // Step 2: Find the lowest common ancestor (LCA) that is an auto layout frame
+  function findLowestCommonAutoLayoutAncestor(chains: BaseNode[][]): FrameNode | null {
+    if (chains.length === 0) return null;
+    // Reverse chains so root is first
+    const reversed = chains.map(chain => [...chain].reverse());
+    let lca: BaseNode | null = null;
+    for (let i = 0; ; i++) {
+      const nodesAtLevel = reversed.map(chain => chain[i]);
+      if (nodesAtLevel.some(n => n === undefined)) break;
+      const first = nodesAtLevel[0];
+      if (nodesAtLevel.every(n => n === first)) {
+        lca = first;
+      } else {
+        break;
+      }
+    }
+    // Check if LCA is an auto layout frame
+    if (lca && lca.type === 'FRAME' && 'layoutMode' in lca && (lca as FrameNode).layoutMode !== 'NONE') {
+      return lca as FrameNode;
+    }
+    return null;
+  }
+
+  const lcaAutoLayout = findLowestCommonAutoLayoutAncestor(ancestorChains);
+  let orderedTextElements: TextNode[] = [];
+
+  if (lcaAutoLayout) {
+    // Step 3: Recursively collect selected text nodes in visual order within the LCA
+    const selectedSet = new Set(textElements);
+    function collectTextNodesInOrder(node: BaseNode): TextNode[] {
+      let result: TextNode[] = [];
+      if (node.type === 'TEXT' && selectedSet.has(node as TextNode)) {
+        result.push(node as TextNode);
+      } else if ('children' in node && Array.isArray((node as any).children)) {
+        for (const child of (node as any).children) {
+          result = result.concat(collectTextNodesInOrder(child));
+        }
+      }
+      return result;
+    }
+    orderedTextElements = collectTextNodesInOrder(lcaAutoLayout);
+  } else {
+    // Fallback: previous logic
+    const parents = textElements.map(t => t.parent).filter(Boolean);
+    const uniqueParents = Array.from(new Set(parents));
+    if (
+      uniqueParents.length === 1 &&
+      uniqueParents[0] !== null &&
+      'layoutMode' in uniqueParents[0] &&
+      (uniqueParents[0] as FrameNode).layoutMode !== 'NONE'
+    ) {
+      const parent = uniqueParents[0] as FrameNode;
+      const selectedSet = new Set(textElements);
+      orderedTextElements = parent.children.filter(
+        node => node.type === 'TEXT' && selectedSet.has(node as TextNode)
+      ) as TextNode[];
+    } else {
+      orderedTextElements = [...textElements].sort((a, b) => {
+        if (Math.abs(a.y - b.y) < 10) {
+          return a.x - b.x;
+        }
+        return a.y - b.y;
+      });
+    }
+  }
+
   // Replace each text element with corresponding array item
-  for (let i = 0; i < textElements.length && i < items.length; i++) {
-    const textElement = textElements[i];
+  for (let i = 0; i < orderedTextElements.length && i < items.length; i++) {
+    const textElement = orderedTextElements[i];
     const item = items[i];
-    
-    // Convert item to string
     const itemText = typeof item === 'string' ? item : JSON.stringify(item);
-    
-    // Load the font that the text element is currently using
     const currentFont = textElement.fontName as FontName;
     await figma.loadFontAsync(currentFont);
-    
-    // Replace the text content while preserving the existing font style
     textElement.characters = itemText;
   }
-  
-  return textElements;
+
+  return orderedTextElements;
 }
 
 /**
