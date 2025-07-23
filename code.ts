@@ -380,6 +380,7 @@ async function handleSendChatMessage(msg: any): Promise<void> {
     
     if (!apiKey) {
       sendToastToUI('Missing valid API key', 'critical');
+      figma.ui.postMessage({ type: 'chat-complete' });
       return;
     }
     
@@ -387,6 +388,7 @@ async function handleSendChatMessage(msg: any): Promise<void> {
     let selectedTextCount = await getSelectedTextElementsCount();
     if (selectedTextCount < 1) {
       sendToastToUI('No text selected', 'error');
+      figma.ui.postMessage({ type: 'chat-complete' });
       return;
     }
     // Show loading state
@@ -399,6 +401,7 @@ async function handleSendChatMessage(msg: any): Promise<void> {
     if (result) {
       sendToastToUI('Updated text', 'success');
     }
+    figma.ui.postMessage({ type: 'chat-complete' });
   } catch (error) {
     // User-facing error handling and messaging happens here.
     console.error('Error processing chat message:', error);
@@ -413,6 +416,7 @@ async function handleSendChatMessage(msg: any): Promise<void> {
       }
     }
     sendToastToUI(userMessage, 'critical');
+    figma.ui.postMessage({ type: 'chat-complete' });
   }
 }
 

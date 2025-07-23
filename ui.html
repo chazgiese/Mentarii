@@ -610,6 +610,9 @@
       if (event.data.pluginMessage && event.data.pluginMessage.type === 'show-toast') {
         showToast(event.data.pluginMessage.message, event.data.pluginMessage.toastType);
       }
+      if (event.data.pluginMessage && event.data.pluginMessage.type === 'chat-complete') {
+        setLoading(false);
+      }
     });
   </script>
 </body>
