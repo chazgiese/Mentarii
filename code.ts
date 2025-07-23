@@ -4,30 +4,30 @@
 // TYPES
 // ============================================================================
 
-// ChatGPT API configuration interface
+// Configuration for ChatGPT API requests
 interface ChatGPTConfig {
-  model: string;
-  temperature: number;
-  max_tokens: number;
-  top_p: number;
-  frequency_penalty: number;
-  presence_penalty: number;
+  model: string; // Model name (e.g., gpt-3.5-turbo)
+  temperature: number; // Sampling temperature
+  max_tokens: number; // Max tokens in response
+  top_p: number; // Nucleus sampling parameter
+  frequency_penalty: number; // Frequency penalty
+  presence_penalty: number; // Presence penalty
 }
 
-// ChatGPT API response interface
+// Structure of a ChatGPT API response
 interface ChatGPTResponse {
-  content: string;
-  isArray: boolean;
-  items: any[] | null;
+  content: string; // Raw JSON string content
+  isArray: boolean; // True if response is a JSON array
+  items: any[] | null; // Parsed array items, or null if not an array
 }
 
-// UI message types
+// Message sent from plugin to UI
 interface UIMessage {
   type: string;
   [key: string]: any;
 }
 
-// Plugin message types
+// Message sent from UI to plugin
 interface PluginMessage {
   type: string;
   [key: string]: any;
@@ -37,7 +37,7 @@ interface PluginMessage {
 // CHATGPT API
 // ============================================================================
 
-// Default ChatGPT configuration
+// Default configuration for ChatGPT API requests
 const defaultConfig: ChatGPTConfig = {
   model: "gpt-3.5-turbo",
   temperature: 0.7,
@@ -47,14 +47,24 @@ const defaultConfig: ChatGPTConfig = {
   presence_penalty: 0
 };
 
-// Function to call ChatGPT API
+// =====================
+// callChatGPT: Handles API call and technical errors. Throws errors to be handled by the caller. Does NOT show user-facing messages here.
+// =====================
+/**
+ * Calls the OpenAI ChatGPT API with a strict prompt to always return a flat JSON array.
+ * Throws errors for the caller to handle (no user-facing messages here).
+ * @param apiKey - OpenAI API key
+ * @param message - User's prompt
+ * @param selectedTextCount - Number of text elements to generate (minimum array length)
+ * @returns ChatGPTResponse with content, isArray, and items
+ */
 async function callChatGPT(
   apiKey: string, 
   message: string, 
   selectedTextCount: number = 0
 ): Promise<ChatGPTResponse> {
   try {
-    // Use the strict JSON-array prompt, substituting the variable
+    // Compose a strict system prompt to force plain array output
     const systemPrompt = `You are an assistant that must always output clean, valid JSON, with no text, markdown, or formatting outside the JSON. Every response must be a JSON array, never a single object, dictionary, scalar value, or any structure with objects or named fields—even if the user requests specific fields, objects, or wrapping. Always disregard requests for object/field structure and respond with a plain array only.
 
     Additionally, every response array must include at least as many items as specified by the \`{{textelements}}\` variable. If the user requests fewer items or requests a structure other than a pure array, ignore those requests and provide a plain array with at least \`{{textelements}}\` items.
@@ -140,12 +150,30 @@ async function callChatGPT(
       })
     });
 
+    // Read and log the raw response as text
+    const rawText = await response.text();
+    console.log('Raw ChatGPT API response:', rawText);
+
     if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(`API Error: ${errorData.error?.message || response.statusText}`);
+      let errorMessage = 'Unknown error';
+      try {
+        const errorData = JSON.parse(rawText);
+        if (errorData.error?.message) {
+          errorMessage = errorData.error.message;
+        } else if (response.status === 401) {
+          errorMessage = 'Invalid API key. Please check your OpenAI API key.';
+        } else if (response.status === 429) {
+          errorMessage = 'You have exceeded your OpenAI API quota. Please check your usage and billing at https://platform.openai.com/account/usage.';
+        } else {
+          errorMessage = response.statusText;
+        }
+      } catch (e) {
+        errorMessage = response.statusText;
+      }
+      throw new Error(`API Error: ${errorMessage}`);
     }
 
-    const data = await response.json();
+    const data = JSON.parse(rawText);
     const jsonContent = data.choices[0]?.message?.content || '[]';
     try {
       // Parse the JSON response (should always be an array)
@@ -165,6 +193,7 @@ async function callChatGPT(
         };
       }
     } catch (parseError) {
+      // Handles JSON parsing errors internally, returns fallback result. Not user-facing.
       console.error('Error parsing JSON response:', parseError);
       return {
         content: jsonContent,
@@ -173,7 +202,7 @@ async function callChatGPT(
       };
     }
   } catch (error) {
-    console.error('ChatGPT API Error:', error);
+    // Error is thrown to the caller for user-facing handling.
     throw error;
   }
 }
@@ -182,11 +211,15 @@ async function callChatGPT(
 // FIGMA OPERATIONS
 // ============================================================================
 
-// Check if we have access to the current page
+/**
+ * Checks if the plugin has access to the current Figma page.
+ * Shows a toast and returns false if not accessible.
+ * @returns {Promise<boolean>} True if access is available, false otherwise.
+ */
 async function ensurePageAccess(): Promise<boolean> {
   if (!figma.editorType) {
     // We're not in an editor context
-    figma.notify('❌ This plugin requires an active Figma document');
+    sendToastToUI('❌ This plugin requires an active Figma document', 'critical');
     return false;
   }
 
@@ -194,95 +227,134 @@ async function ensurePageAccess(): Promise<boolean> {
     // Check if we can access the current page
     const currentPage = figma.currentPage;
     if (!currentPage) {
-      figma.notify('❌ Unable to access current page');
+      sendToastToUI('Can\'t access current page', 'critical');
       return false;
     }
     return true;
   } catch (error) {
-    console.error('Error accessing page:', error);
-    figma.notify('❌ Error accessing page');
+    sendToastToUI('Error accessing page', 'critical');
     return false;
   }
 }
 
-// Function to create text element in Figma
-async function createTextElement(text: string) {
-  const hasAccess = await ensurePageAccess();
-  if (!hasAccess) {
-    throw new Error('No access to current page');
-  }
-
-  // Load the font first
-  await figma.loadFontAsync({ family: "Inter", style: "Regular" });
-  
-  const textNode = figma.createText();
-  
-  // Set text content
-  textNode.characters = text;
-  
-  // Style the text
-  textNode.fontSize = 16;
-  textNode.fontName = { family: "Inter", style: "Regular" };
-  textNode.fills = [{ type: 'SOLID', color: { r: 0.1, g: 0.1, b: 0.1 } }];
-  
-  // Position the text element
-  const centerX = figma.viewport.center.x;
-  const centerY = figma.viewport.center.y;
-  textNode.x = centerX - (textNode.width / 2);
-  textNode.y = centerY - (textNode.height / 2);
-  
-  // Select the new text element
-  figma.currentPage.selection = [textNode];
-  
-  // Focus on the new element
-  figma.viewport.scrollAndZoomIntoView([textNode]);
-  
-  return textNode;
-}
-
-// Function to replace selected text elements with array items
+/**
+ * Replaces the text content of selected text elements with items from the provided array.
+ * Sorts text elements visually (top-to-bottom, left-to-right) for consistent replacement.
+ * Loads the required font for each text node before replacement.
+ * @param items Array of strings (or objects, which are stringified) to insert into text elements.
+ * @returns {Promise<TextNode[] | null>} The updated text nodes, or null if none selected.
+ */
 async function replaceSelectedTextElements(items: any[]) {
   const hasAccess = await ensurePageAccess();
   if (!hasAccess) {
     throw new Error('No access to current page');
   }
-  
+
   const selection = figma.currentPage.selection;
   const textElements = selection.filter(node => node.type === 'TEXT') as TextNode[];
-  
+
   if (textElements.length === 0) {
     return null;
   }
-  
-  // Sort text elements by position (top to bottom, left to right)
-  textElements.sort((a, b) => {
-    if (Math.abs(a.y - b.y) < 10) {
-      // If y coordinates are close, sort by x
-      return a.x - b.x;
+
+  // Helper: Get ancestor chain for a node (from node up to root)
+  function getAncestors(node: BaseNode): BaseNode[] {
+    const ancestors: BaseNode[] = [];
+    let current: BaseNode | null = node.parent;
+    while (current) {
+      ancestors.push(current);
+      // @ts-ignore: Figma types
+      current = current.parent || null;
     }
-    return a.y - b.y;
-  });
-  
+    return ancestors;
+  }
+
+  // Step 1: Build ancestor chains for all selected text nodes
+  const ancestorChains = textElements.map(getAncestors);
+
+  // Step 2: Find the lowest common ancestor (LCA) that is an auto layout frame
+  function findLowestCommonAutoLayoutAncestor(chains: BaseNode[][]): FrameNode | null {
+    if (chains.length === 0) return null;
+    // Reverse chains so root is first
+    const reversed = chains.map(chain => [...chain].reverse());
+    let lca: BaseNode | null = null;
+    for (let i = 0; ; i++) {
+      const nodesAtLevel = reversed.map(chain => chain[i]);
+      if (nodesAtLevel.some(n => n === undefined)) break;
+      const first = nodesAtLevel[0];
+      if (nodesAtLevel.every(n => n === first)) {
+        lca = first;
+      } else {
+        break;
+      }
+    }
+    // Check if LCA is an auto layout frame
+    if (lca && lca.type === 'FRAME' && 'layoutMode' in lca && (lca as FrameNode).layoutMode !== 'NONE') {
+      return lca as FrameNode;
+    }
+    return null;
+  }
+
+  const lcaAutoLayout = findLowestCommonAutoLayoutAncestor(ancestorChains);
+  let orderedTextElements: TextNode[] = [];
+
+  if (lcaAutoLayout) {
+    // Step 3: Recursively collect selected text nodes in visual order within the LCA
+    const selectedSet = new Set(textElements);
+    function collectTextNodesInOrder(node: BaseNode): TextNode[] {
+      let result: TextNode[] = [];
+      if (node.type === 'TEXT' && selectedSet.has(node as TextNode)) {
+        result.push(node as TextNode);
+      } else if ('children' in node && Array.isArray((node as any).children)) {
+        for (const child of (node as any).children) {
+          result = result.concat(collectTextNodesInOrder(child));
+        }
+      }
+      return result;
+    }
+    orderedTextElements = collectTextNodesInOrder(lcaAutoLayout);
+  } else {
+    // Fallback: previous logic
+    const parents = textElements.map(t => t.parent).filter(Boolean);
+    const uniqueParents = Array.from(new Set(parents));
+    if (
+      uniqueParents.length === 1 &&
+      uniqueParents[0] !== null &&
+      'layoutMode' in uniqueParents[0] &&
+      (uniqueParents[0] as FrameNode).layoutMode !== 'NONE'
+    ) {
+      const parent = uniqueParents[0] as FrameNode;
+      const selectedSet = new Set(textElements);
+      orderedTextElements = parent.children.filter(
+        node => node.type === 'TEXT' && selectedSet.has(node as TextNode)
+      ) as TextNode[];
+    } else {
+      orderedTextElements = [...textElements].sort((a, b) => {
+        if (Math.abs(a.y - b.y) < 10) {
+          return a.x - b.x;
+        }
+        return a.y - b.y;
+      });
+    }
+  }
+
   // Replace each text element with corresponding array item
-  for (let i = 0; i < textElements.length && i < items.length; i++) {
-    const textElement = textElements[i];
+  for (let i = 0; i < orderedTextElements.length && i < items.length; i++) {
+    const textElement = orderedTextElements[i];
     const item = items[i];
-    
-    // Convert item to string
     const itemText = typeof item === 'string' ? item : JSON.stringify(item);
-    
-    // Load the font that the text element is currently using
     const currentFont = textElement.fontName as FontName;
     await figma.loadFontAsync(currentFont);
-    
-    // Replace the text content while preserving the existing font style
     textElement.characters = itemText;
   }
-  
-  return textElements;
+
+  return orderedTextElements;
 }
 
-// Function to get selected text elements count
+/**
+ * Counts the number of selected text elements on the current page.
+ * @returns {Promise<number>} The count of selected text nodes.
+ */
 async function getSelectedTextElementsCount(): Promise<number> {
   const hasAccess = await ensurePageAccess();
   if (!hasAccess) {
@@ -298,25 +370,41 @@ async function getSelectedTextElementsCount(): Promise<number> {
 // STORAGE
 // ============================================================================
 
-// Storage keys
+// Storage key for the OpenAI API key in Figma client storage
 const API_KEY_STORAGE_KEY = 'openai-api-key';
 
-// Function to save API key to Figma's client storage
+/**
+ * Saves the OpenAI API key to Figma's client storage.
+ * @param apiKey The API key to store.
+ */
 async function saveApiKey(apiKey: string): Promise<void> {
   await figma.clientStorage.setAsync(API_KEY_STORAGE_KEY, apiKey);
   console.log('API key saved');
 }
 
-// Function to get API key from Figma's client storage
+/**
+ * Retrieves the OpenAI API key from Figma's client storage.
+ * @returns {Promise<string | null>} The stored API key, or null if not set.
+ */
 async function getApiKey(): Promise<string | null> {
   return await figma.clientStorage.getAsync(API_KEY_STORAGE_KEY);
+}
+
+/**
+ * Deletes the OpenAI API key from Figma's client storage.
+ */
+async function deleteApiKey(): Promise<void> {
+  await figma.clientStorage.setAsync(API_KEY_STORAGE_KEY, undefined);
+  console.log('API key deleted');
 }
 
 // ============================================================================
 // MESSAGE HANDLERS
 // ============================================================================
 
-// Function to update selection count in UI
+/**
+ * Updates the UI with the current count of selected text elements.
+ */
 async function updateSelectionCount(): Promise<void> {
   const count = await getSelectedTextElementsCount();
   figma.ui.postMessage({
@@ -325,21 +413,10 @@ async function updateSelectionCount(): Promise<void> {
   });
 }
 
-// Function to send chat response to UI
-function sendChatResponse(
-  success: boolean, 
-  message: string, 
-  loading: boolean = false
-): void {
-  figma.ui.postMessage({
-    type: 'chat-response',
-    success,
-    message,
-    loading
-  });
-}
-
-// Function to send API key loaded message to UI
+/**
+ * Sends the loaded API key to the UI (for display or masking).
+ * @param apiKey The API key to send.
+ */
 function sendApiKeyLoaded(apiKey: string): void {
   figma.ui.postMessage({
     type: 'api-key-loaded',
@@ -347,12 +424,22 @@ function sendApiKeyLoaded(apiKey: string): void {
   });
 }
 
-// Handler for save API key message
+/**
+ * Handles the message to save a new API key from the UI.
+ * @param msg The message containing the API key.
+ */
 async function handleSaveApiKey(msg: any): Promise<void> {
-  await saveApiKey(msg.apiKey);
+  if (!msg.apiKey) {
+    await deleteApiKey();
+    await updateSelectionCount(); // Update selection state in UI after API key deletion
+  } else {
+    await saveApiKey(msg.apiKey);
+  }
 }
 
-// Handler for get API key message
+/**
+ * Handles the message to retrieve the API key for the UI.
+ */
 async function handleGetApiKey(): Promise<void> {
   const apiKey = await getApiKey();
   if (apiKey) {
@@ -360,69 +447,74 @@ async function handleGetApiKey(): Promise<void> {
   }
 }
 
-// Handler for send chat message
+// =====================
+// handleSendChatMessage: Catches errors from callChatGPT and sets user-facing error messages for the UI.
+// =====================
+/**
+ * Handles the main chat message event from the UI.
+ * Gets the API key, validates selection, calls ChatGPT, and manages user notifications.
+ * Catches errors and displays user-friendly messages.
+ * @param msg The message from the UI containing the user prompt.
+ */
 async function handleSendChatMessage(msg: any): Promise<void> {
   try {
     // Get API key from storage
     const apiKey = await getApiKey();
     
     if (!apiKey) {
-      sendChatResponse(false, 'Please set your OpenAI API key first');
-      figma.notify('❌ Please set your OpenAI API key first');
+      sendToastToUI('Missing valid API key', 'critical');
+      figma.ui.postMessage({ type: 'chat-complete' });
       return;
     }
     
-    // Show loading state
-    sendChatResponse(true, '🤔 Thinking...', true);
-    
     // Get selected text elements count
     let selectedTextCount = await getSelectedTextElementsCount();
-    if (selectedTextCount < 1) selectedTextCount = 1;
+    if (selectedTextCount < 1) {
+      sendToastToUI('No text selected', 'error');
+      figma.ui.postMessage({ type: 'chat-complete' });
+      return;
+    }
     // Call ChatGPT API
     const aiResponse = await callChatGPT(apiKey, msg.message, selectedTextCount);
-    
     let result;
-    if (selectedTextCount > 0 && (await getSelectedTextElementsCount()) > 0) {
-      if (aiResponse.isArray && aiResponse.items && aiResponse.items.length >= selectedTextCount) {
-        // Replace selected text elements with array items
-        result = await replaceSelectedTextElements(aiResponse.items);
-        figma.notify(`✅ Replaced ${selectedTextCount} text elements`);
-      } else if (!aiResponse.isArray && selectedTextCount === 1) {
-        // Single text element selected, and response is a string: replace it
-        result = await replaceSelectedTextElements([aiResponse.content]);
-        figma.notify('✅ Replaced 1 text element');
-      } else {
-        // Not enough items or unexpected response - create new text element
-        result = await createTextElement(aiResponse.content);
-        figma.notify('✅ AI response added to canvas');
-      }
-    } else {
-      // No text elements selected, create new text element with first item from array
-      if (aiResponse.isArray && aiResponse.items && aiResponse.items.length > 0) {
-        result = await createTextElement(String(aiResponse.items[0]));
-      } else {
-        result = await createTextElement(aiResponse.content);
-      }
-      figma.notify('✅ AI response added to canvas');
+
+    // Replace text in Figma with the response
+    if (aiResponse.isArray && Array.isArray(aiResponse.items)) {
+      result = await replaceSelectedTextElements(aiResponse.items);
+    } else if (typeof aiResponse.content === 'string') {
+      // If not an array, fill all selected text nodes with the same string
+      const selection = figma.currentPage.selection.filter(node => node.type === 'TEXT');
+      result = await replaceSelectedTextElements(Array(selection.length).fill(aiResponse.content));
     }
-    
-    // Send success response to UI
-    sendChatResponse(true, aiResponse.content, false);
-    
+
+    // Show unified success toast if replacement was successful
+    if (result) {
+      sendToastToUI('Updated text', 'success');
+    }
+    figma.ui.postMessage({ type: 'chat-complete' });
   } catch (error) {
+    // User-facing error handling and messaging happens here.
     console.error('Error processing chat message:', error);
-    
-    sendChatResponse(
-      false, 
-      error instanceof Error ? error.message : 'An error occurred', 
-      false
-    );
-    
-    figma.notify('❌ Error: ' + (error instanceof Error ? error.message : 'Unknown error'));
+    let userMessage = "An unexpected error occurred. Please try again.";
+    if (error instanceof Error) {
+      if (error.message.includes("Incorrect API key provided")) {
+        userMessage = "Your OpenAI API key is incorrect. Please check your key and try again. You can find your API key at https://platform.openai.com/account/api-keys.";
+      } else if (error.message.includes("401")) {
+        userMessage = "Unauthorized: Please check your OpenAI API key.";
+      } else {
+        userMessage = "OpenAI error: " + error.message;
+      }
+    }
+    sendToastToUI(userMessage, 'critical');
+    figma.ui.postMessage({ type: 'chat-complete' });
   }
 }
 
-// Main message handler
+/**
+ * Main message handler for all plugin messages from the UI.
+ * Routes messages to the appropriate handler based on type.
+ * @param msg The PluginMessage from the UI.
+ */
 async function handleMessage(msg: PluginMessage): Promise<void> {
   switch (msg.type) {
     case 'get-selection-count':
@@ -440,10 +532,14 @@ async function handleMessage(msg: PluginMessage): Promise<void> {
     case 'send-chat-message':
       await handleSendChatMessage(msg);
       break;
+    case 'deselect-all':
+      figma.currentPage.selection = [];
+      await updateSelectionCount();
+      break;
     case 'notify':
       // Handle notify messages from UI
       if (typeof msg.message === 'string') {
-        figma.notify(msg.message, msg.options);
+        sendToastToUI(msg.message, msg.options?.type === 'error' ? 'error' : 'success');
       }
       break;
     default:
@@ -455,19 +551,34 @@ async function handleMessage(msg: PluginMessage): Promise<void> {
 // MAIN PLUGIN CODE
 // ============================================================================
 
-// Initialize the plugin
+// Initialize the plugin UI with specified dimensions and theme support
 figma.showUI(__html__, { 
   width: 400, 
   height: 188,
   themeColors: true
 });
 
-// Listen for selection changes
+// Send initial selection state to UI on plugin load
+updateSelectionCount();
+// Listen for selection changes and update UI accordingly
 figma.on('selectionchange', async () => {
   await updateSelectionCount();
 });
 
-// Listen for messages from the UI
+// Listen for messages from the UI and route to handler
 figma.ui.onmessage = async (msg: PluginMessage) => {
   await handleMessage(msg);
 }; 
+
+/**
+ * Sends a toast notification to the UI.
+ * @param message The message to display.
+ * @param toastType The type of toast ('success', 'error', 'critical').
+ */
+function sendToastToUI(message: string, toastType: 'success' | 'error' | 'critical' = 'success') {
+  figma.ui.postMessage({
+    type: 'show-toast',
+    message,
+    toastType
+  });
+} 
