@@ -141,8 +141,22 @@ async function callChatGPT(
     });
 
     if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(`API Error: ${errorData.error?.message || response.statusText}`);
+      let errorMessage = 'Unknown error';
+      try {
+        const errorData = await response.json();
+        if (errorData.error?.message) {
+          errorMessage = errorData.error.message;
+        } else if (response.status === 401) {
+          errorMessage = 'Invalid API key. Please check your OpenAI API key.';
+        } else if (response.status === 429) {
+          errorMessage = 'You have exceeded your OpenAI API quota. Please check your usage and billing at https://platform.openai.com/account/usage.';
+        } else {
+          errorMessage = response.statusText;
+        }
+      } catch (e) {
+        errorMessage = response.statusText;
+      }
+      throw new Error(`API Error: ${errorMessage}`);
     }
 
     const data = await response.json();
@@ -174,6 +188,7 @@ async function callChatGPT(
     }
   } catch (error) {
     console.error('ChatGPT API Error:', error);
+    // Remove toast here; let the caller handle user notification
     throw error;
   }
 }
@@ -186,7 +201,7 @@ async function callChatGPT(
 async function ensurePageAccess(): Promise<boolean> {
   if (!figma.editorType) {
     // We're not in an editor context
-    figma.notify('❌ This plugin requires an active Figma document');
+    sendToastToUI('❌ This plugin requires an active Figma document', 'critical');
     return false;
   }
 
@@ -194,50 +209,14 @@ async function ensurePageAccess(): Promise<boolean> {
     // Check if we can access the current page
     const currentPage = figma.currentPage;
     if (!currentPage) {
-      figma.notify('❌ Unable to access current page');
+      sendToastToUI('Can\'t access current page', 'critical');
       return false;
     }
     return true;
   } catch (error) {
-    console.error('Error accessing page:', error);
-    figma.notify('❌ Error accessing page');
+    sendToastToUI('Error accessing page', 'critical');
     return false;
   }
-}
-
-// Function to create text element in Figma
-async function createTextElement(text: string) {
-  const hasAccess = await ensurePageAccess();
-  if (!hasAccess) {
-    throw new Error('No access to current page');
-  }
-
-  // Load the font first
-  await figma.loadFontAsync({ family: "Inter", style: "Regular" });
-  
-  const textNode = figma.createText();
-  
-  // Set text content
-  textNode.characters = text;
-  
-  // Style the text
-  textNode.fontSize = 16;
-  textNode.fontName = { family: "Inter", style: "Regular" };
-  textNode.fills = [{ type: 'SOLID', color: { r: 0.1, g: 0.1, b: 0.1 } }];
-  
-  // Position the text element
-  const centerX = figma.viewport.center.x;
-  const centerY = figma.viewport.center.y;
-  textNode.x = centerX - (textNode.width / 2);
-  textNode.y = centerY - (textNode.height / 2);
-  
-  // Select the new text element
-  figma.currentPage.selection = [textNode];
-  
-  // Focus on the new element
-  figma.viewport.scrollAndZoomIntoView([textNode]);
-  
-  return textNode;
 }
 
 // Function to replace selected text elements with array items
@@ -325,20 +304,6 @@ async function updateSelectionCount(): Promise<void> {
   });
 }
 
-// Function to send chat response to UI
-function sendChatResponse(
-  success: boolean, 
-  message: string, 
-  loading: boolean = false
-): void {
-  figma.ui.postMessage({
-    type: 'chat-response',
-    success,
-    message,
-    loading
-  });
-}
-
 // Function to send API key loaded message to UI
 function sendApiKeyLoaded(apiKey: string): void {
   figma.ui.postMessage({
@@ -367,58 +332,29 @@ async function handleSendChatMessage(msg: any): Promise<void> {
     const apiKey = await getApiKey();
     
     if (!apiKey) {
-      sendChatResponse(false, 'Please set your OpenAI API key first');
-      figma.notify('❌ Please set your OpenAI API key first');
+      sendToastToUI('Missing valid API key', 'critical');
       return;
     }
     
-    // Show loading state
-    sendChatResponse(true, '🤔 Thinking...', true);
-    
     // Get selected text elements count
     let selectedTextCount = await getSelectedTextElementsCount();
-    if (selectedTextCount < 1) selectedTextCount = 1;
+    if (selectedTextCount < 1) {
+      sendToastToUI('No text selected', 'error');
+      return;
+    }
+    // Show loading state
+    sendToastToUI('🤔 Thinking...', 'success');
     // Call ChatGPT API
     const aiResponse = await callChatGPT(apiKey, msg.message, selectedTextCount);
-    
     let result;
-    if (selectedTextCount > 0 && (await getSelectedTextElementsCount()) > 0) {
-      if (aiResponse.isArray && aiResponse.items && aiResponse.items.length >= selectedTextCount) {
-        // Replace selected text elements with array items
-        result = await replaceSelectedTextElements(aiResponse.items);
-        figma.notify(`✅ Replaced ${selectedTextCount} text elements`);
-      } else if (!aiResponse.isArray && selectedTextCount === 1) {
-        // Single text element selected, and response is a string: replace it
-        result = await replaceSelectedTextElements([aiResponse.content]);
-        figma.notify('✅ Replaced 1 text element');
-      } else {
-        // Not enough items or unexpected response - create new text element
-        result = await createTextElement(aiResponse.content);
-        figma.notify('✅ AI response added to canvas');
-      }
-    } else {
-      // No text elements selected, create new text element with first item from array
-      if (aiResponse.isArray && aiResponse.items && aiResponse.items.length > 0) {
-        result = await createTextElement(String(aiResponse.items[0]));
-      } else {
-        result = await createTextElement(aiResponse.content);
-      }
-      figma.notify('✅ AI response added to canvas');
+
+    // Show unified success toast if replacement was successful
+    if (result) {
+      sendToastToUI('Updated text', 'success');
     }
-    
-    // Send success response to UI
-    sendChatResponse(true, aiResponse.content, false);
-    
   } catch (error) {
     console.error('Error processing chat message:', error);
-    
-    sendChatResponse(
-      false, 
-      error instanceof Error ? error.message : 'An error occurred', 
-      false
-    );
-    
-    figma.notify('❌ Error: ' + (error instanceof Error ? error.message : 'Unknown error'));
+    sendToastToUI('Error: ' + (error instanceof Error ? error.message : 'Unknown error'), 'critical');
   }
 }
 
@@ -443,7 +379,7 @@ async function handleMessage(msg: PluginMessage): Promise<void> {
     case 'notify':
       // Handle notify messages from UI
       if (typeof msg.message === 'string') {
-        figma.notify(msg.message, msg.options);
+        sendToastToUI(msg.message, msg.options?.type === 'error' ? 'error' : 'success');
       }
       break;
     default:
@@ -462,6 +398,8 @@ figma.showUI(__html__, {
   themeColors: true
 });
 
+// Send initial selection state to UI
+updateSelectionCount();
 // Listen for selection changes
 figma.on('selectionchange', async () => {
   await updateSelectionCount();
@@ -471,3 +409,11 @@ figma.on('selectionchange', async () => {
 figma.ui.onmessage = async (msg: PluginMessage) => {
   await handleMessage(msg);
 }; 
+
+function sendToastToUI(message: string, toastType: 'success' | 'error' | 'critical' = 'success') {
+  figma.ui.postMessage({
+    type: 'show-toast',
+    message,
+    toastType
+  });
+} 

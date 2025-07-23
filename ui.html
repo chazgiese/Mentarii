@@ -240,6 +240,57 @@
     .api-key-info a:hover {
       text-decoration: underline;
     }
+    /* Toast styles */
+    .toast {
+      max-width: 200px;
+      padding: 14px 28px;
+      border-radius: 12px;
+      box-shadow: 0 2px 16px rgba(0,0,0,0.15);
+      font-size: 15px;
+      margin: 0 auto;
+      font-weight: bold;
+      transition: all 0.4s cubic-bezier(.4,0,.2,1);
+      pointer-events: auto;
+      opacity: 0;
+      transform: translateY(100px);
+      position: relative;
+      z-index: 10000;
+    }
+    .toast-success {
+      background: #23272f;
+      color: #fff;
+    }
+    .toast-error {
+      background: #ffeaea;
+      color: #b00020;
+    }
+    .toast-critical {
+      background: #b00020;
+      color: #fff;
+      border: 2px solid #fff;
+    }
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .toast-close-btn {
+      position: absolute;
+      top: 8px;
+      right: 16px;
+      background: transparent;
+      color: #fff;
+      border: none;
+      font-size: 18px;
+      cursor: pointer;
+      font-weight: bold;
+      pointer-events: auto;
+    }
+    .toast-error .toast-close-btn {
+      color: #b00020;
+    }
+    .toast-success .toast-close-btn {
+      color: #fff;
+    }
   </style>
 </head>
 <body>
@@ -249,6 +300,8 @@
       
       <!-- Removed selection-banner and selected element counter UI -->
       
+      <!-- Selection state display -->
+      <div id="selection-state" style="margin-bottom: 8px; font-size: 12px; color: var(--figma-color-text-secondary);"></div>
       <div class="chat-input-container">
         <div 
           class="chat-input" 
@@ -291,16 +344,30 @@
     </div>
   </div>
 
+  <div id="toast-container" style="position: fixed; left: 0; right: 0; bottom: 24px; display: flex; justify-content: center; z-index: 9999; pointer-events: none;"></div>
+
   <script>
     // Chat functionality
     const chatInput = document.getElementById('chat-input');
     const sendButton = document.getElementById('send-button');
     // Removed responseArea
     
-    // Update send button state based on input content
+    // Track selection count
+    let selectedTextCount = 0;
+    const selectionState = document.getElementById('selection-state');
+
+    function updateSelectionState() {
+      if (selectedTextCount < 1) {
+        selectionState.textContent = 'select text';
+      } else {
+        selectionState.textContent = `${selectedTextCount} selected`;
+      }
+    }
+
+    // Update send button state based on input content and selection
     function updateSendButton() {
       const hasContent = chatInput.textContent.trim().length > 0;
-      sendButton.disabled = !hasContent || sendButton.classList.contains('loading');
+      sendButton.disabled = !hasContent || sendButton.classList.contains('loading') || selectedTextCount < 1;
     }
     
     // Show response in UI
@@ -336,6 +403,10 @@
     // Handle send button click
     sendButton.addEventListener('click', () => {
       const message = chatInput.textContent.trim();
+      if (selectedTextCount < 1) {
+        parent.postMessage({ pluginMessage: { type: 'notify', message: 'Please select at least one text element to replace.', options: { error: true, timeout: 3000 } } }, '*');
+        return;
+      }
       if (message && !sendButton.classList.contains('loading')) {
         setLoading(true);
         // clearResponse(); // removed
@@ -366,25 +437,12 @@
     
     // Listen for selection updates from the plugin
     window.addEventListener('message', (event) => {
-      // Removed selection-update handling
-      
-      if (event.data.pluginMessage && event.data.pluginMessage.type === 'chat-response') {
-        // Handle chat response from plugin
-        const response = event.data.pluginMessage;
-        setLoading(response.loading);
-        
-        // Instead of showResponse/clearResponse, use figma.notify
-        if (response.success) {
-          if (response.loading) {
-            parent.postMessage({ pluginMessage: { type: 'notify', message: response.message, options: { timeout: 2000 } } }, '*');
-          } else {
-            parent.postMessage({ pluginMessage: { type: 'notify', message: '✅ Response added to Figma canvas!', options: { timeout: 2000 } } }, '*');
-          }
-        } else {
-          parent.postMessage({ pluginMessage: { type: 'notify', message: '❌ ' + response.message, options: { error: true, timeout: 3000 } } }, '*');
-        }
+      if (event.data.pluginMessage && event.data.pluginMessage.type === 'selection-update') {
+        selectedTextCount = event.data.pluginMessage.count;
+        updateSelectionState();
+        updateSendButton();
       }
-      
+      // Remove chat-response handling
       if (event.data.pluginMessage && event.data.pluginMessage.type === 'api-key-loaded') {
         // Load saved API key into input
         const savedApiKey = event.data.pluginMessage.apiKey;
@@ -451,6 +509,94 @@
         const savedApiKey = event.data.pluginMessage.apiKey;
         apiKeyInputModal.value = savedApiKey || '';
         updateApiKeyStatusModal(savedApiKey);
+      }
+    });
+
+    // Block sending prompts if API key is missing or invalid
+    function isApiKeyValid(key) {
+      return key && key.startsWith('sk-') && key.length > 20;
+    }
+    // Disable chat input and show warning if API key is missing/invalid
+    function updateChatInputState() {
+      const key = apiKeyInputModal.value;
+      const chatInput = document.querySelector('.chat-input');
+      const sendButton = document.getElementById('send-button');
+      if (!isApiKeyValid(key)) {
+        chatInput.disabled = true;
+        sendButton.disabled = true;
+        chatInput.placeholder = 'Enter a valid OpenAI API key in Settings (🔑) to use the plugin.';
+      } else {
+        chatInput.disabled = false;
+        sendButton.disabled = false;
+        chatInput.placeholder = 'Type your prompt here...';
+      }
+    }
+    apiKeyInputModal.addEventListener('input', (e) => {
+      const key = e.target.value;
+      updateApiKeyStatusModal(key);
+      clearTimeout(apiKeyInputModalSaveTimeout);
+      apiKeyInputModalSaveTimeout = setTimeout(() => {
+        if (validateApiKey(key)) {
+          parent.postMessage({ pluginMessage: { type: 'save-api-key', apiKey: key } }, '*');
+        }
+      }, 500);
+      updateChatInputState();
+    });
+    // On load, update chat input state
+    window.addEventListener('DOMContentLoaded', updateChatInputState);
+    // Also update when API key is loaded from storage
+    window.addEventListener('message', (event) => {
+      if (event.data.pluginMessage && event.data.pluginMessage.type === 'api-key-loaded') {
+        const savedApiKey = event.data.pluginMessage.apiKey;
+        apiKeyInputModal.value = savedApiKey || '';
+        updateApiKeyStatusModal(savedApiKey);
+        updateChatInputState();
+      }
+      // Remove chat-response error banner logic
+    });
+
+    // Toast notification logic
+    function showToast(message, type = 'success') {
+      const toastContainer = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      toast.classList.add('toast');
+      if (type === 'critical') {
+        toast.classList.add('toast-critical');
+      } else if (type === 'error') {
+        toast.classList.add('toast-error');
+      } else {
+        toast.classList.add('toast-success');
+      }
+      toast.textContent = message;
+      // Add close button for critical toasts
+      if (type === 'critical') {
+        const closeBtn = document.createElement('button');
+        closeBtn.textContent = '✕';
+        closeBtn.className = 'toast-close-btn';
+        closeBtn.addEventListener('click', () => {
+          toast.remove();
+        });
+        toast.appendChild(closeBtn);
+      }
+      toastContainer.appendChild(toast);
+      // Animate in
+      setTimeout(() => {
+        toast.classList.add('show');
+      }, 10);
+      // Remove after 3s if not critical
+      if (type !== 'critical') {
+        setTimeout(() => {
+          toast.classList.remove('show');
+          setTimeout(() => {
+            toast.remove();
+          }, 400);
+        }, 3000);
+      }
+    }
+    // Listen for show-toast messages from plugin
+    window.addEventListener('message', (event) => {
+      if (event.data.pluginMessage && event.data.pluginMessage.type === 'show-toast') {
+        showToast(event.data.pluginMessage.message, event.data.pluginMessage.toastType);
       }
     });
   </script>
