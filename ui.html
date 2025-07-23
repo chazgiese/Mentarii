@@ -376,13 +376,31 @@
     // Track selection count for UI feedback
     let selectedTextCount = 0;
     const selectionState = document.getElementById('selection-state');
+    let currentApiKey = '';
 
-    // Updates the selection state display (e.g., '2 selected')
+    function isApiKeyValid(key) {
+      return key && key.startsWith('sk-') && key.length > 20;
+    }
+
+    // Updates the selection state display (e.g., '2 selected', 'add api key')
     function updateSelectionState() {
-      if (selectedTextCount < 1) {
+      if (!isApiKeyValid(currentApiKey)) {
+        selectionState.textContent = 'add api key';
+        selectionState.style.cursor = 'pointer';
+        selectionState.onclick = () => {
+          apiKeyModal.style.display = 'flex';
+          parent.postMessage({ pluginMessage: { type: 'get-api-key' } }, '*');
+        };
+      } else if (selectedTextCount < 1) {
         selectionState.textContent = 'select text';
+        selectionState.style.cursor = 'default';
+        selectionState.onclick = null;
       } else {
         selectionState.textContent = `${selectedTextCount} selected`;
+        selectionState.style.cursor = 'pointer';
+        selectionState.onclick = () => {
+          parent.postMessage({ pluginMessage: { type: 'deselect-all' } }, '*');
+        };
       }
     }
 
@@ -447,6 +465,7 @@
     autoResize();
     
     // --- Selection state updates from plugin ---
+    // Listen for selection updates from plugin
     window.addEventListener('message', (event) => {
       if (event.data.pluginMessage && event.data.pluginMessage.type === 'selection-update') {
         selectedTextCount = event.data.pluginMessage.count;
@@ -456,8 +475,10 @@
       // Handle API key loaded from plugin
       if (event.data.pluginMessage && event.data.pluginMessage.type === 'api-key-loaded') {
         const savedApiKey = event.data.pluginMessage.apiKey;
-        apiKeyInputModal.value = savedApiKey;
+        currentApiKey = savedApiKey || '';
+        apiKeyInputModal.value = savedApiKey || '';
         updateApiKeyStatusModal(savedApiKey);
+        updateSelectionState();
       }
     });
 
@@ -507,7 +528,9 @@
       updateApiKeyStatusModal(key);
       clearTimeout(apiKeyInputModalSaveTimeout);
       apiKeyInputModalSaveTimeout = setTimeout(() => {
-        if (validateApiKey(key)) {
+        if (key === '') {
+          parent.postMessage({ pluginMessage: { type: 'save-api-key', apiKey: '' } }, '*');
+        } else if (validateApiKey(key)) {
           parent.postMessage({ pluginMessage: { type: 'save-api-key', apiKey: key } }, '*');
         }
       }, 500);
@@ -545,7 +568,9 @@
       updateApiKeyStatusModal(key);
       clearTimeout(apiKeyInputModalSaveTimeout);
       apiKeyInputModalSaveTimeout = setTimeout(() => {
-        if (validateApiKey(key)) {
+        if (key === '') {
+          parent.postMessage({ pluginMessage: { type: 'save-api-key', apiKey: '' } }, '*');
+        } else if (validateApiKey(key)) {
           parent.postMessage({ pluginMessage: { type: 'save-api-key', apiKey: key } }, '*');
         }
       }, 500);

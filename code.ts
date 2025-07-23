@@ -150,10 +150,14 @@ async function callChatGPT(
       })
     });
 
+    // Read and log the raw response as text
+    const rawText = await response.text();
+    console.log('Raw ChatGPT API response:', rawText);
+
     if (!response.ok) {
       let errorMessage = 'Unknown error';
       try {
-        const errorData = await response.json();
+        const errorData = JSON.parse(rawText);
         if (errorData.error?.message) {
           errorMessage = errorData.error.message;
         } else if (response.status === 401) {
@@ -169,7 +173,7 @@ async function callChatGPT(
       throw new Error(`API Error: ${errorMessage}`);
     }
 
-    const data = await response.json();
+    const data = JSON.parse(rawText);
     const jsonContent = data.choices[0]?.message?.content || '[]';
     try {
       // Parse the JSON response (should always be an array)
@@ -320,6 +324,14 @@ async function getApiKey(): Promise<string | null> {
   return await figma.clientStorage.getAsync(API_KEY_STORAGE_KEY);
 }
 
+/**
+ * Deletes the OpenAI API key from Figma's client storage.
+ */
+async function deleteApiKey(): Promise<void> {
+  await figma.clientStorage.setAsync(API_KEY_STORAGE_KEY, undefined);
+  console.log('API key deleted');
+}
+
 // ============================================================================
 // MESSAGE HANDLERS
 // ============================================================================
@@ -351,7 +363,11 @@ function sendApiKeyLoaded(apiKey: string): void {
  * @param msg The message containing the API key.
  */
 async function handleSaveApiKey(msg: any): Promise<void> {
-  await saveApiKey(msg.apiKey);
+  if (!msg.apiKey) {
+    await deleteApiKey();
+  } else {
+    await saveApiKey(msg.apiKey);
+  }
 }
 
 /**
@@ -397,6 +413,15 @@ async function handleSendChatMessage(msg: any): Promise<void> {
     const aiResponse = await callChatGPT(apiKey, msg.message, selectedTextCount);
     let result;
 
+    // Replace text in Figma with the response
+    if (aiResponse.isArray && Array.isArray(aiResponse.items)) {
+      result = await replaceSelectedTextElements(aiResponse.items);
+    } else if (typeof aiResponse.content === 'string') {
+      // If not an array, fill all selected text nodes with the same string
+      const selection = figma.currentPage.selection.filter(node => node.type === 'TEXT');
+      result = await replaceSelectedTextElements(Array(selection.length).fill(aiResponse.content));
+    }
+
     // Show unified success toast if replacement was successful
     if (result) {
       sendToastToUI('Updated text', 'success');
@@ -441,6 +466,10 @@ async function handleMessage(msg: PluginMessage): Promise<void> {
       
     case 'send-chat-message':
       await handleSendChatMessage(msg);
+      break;
+    case 'deselect-all':
+      figma.currentPage.selection = [];
+      await updateSelectionCount();
       break;
     case 'notify':
       // Handle notify messages from UI
