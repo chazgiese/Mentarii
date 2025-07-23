@@ -4,30 +4,30 @@
 // TYPES
 // ============================================================================
 
-// ChatGPT API configuration interface
+// Configuration for ChatGPT API requests
 interface ChatGPTConfig {
-  model: string;
-  temperature: number;
-  max_tokens: number;
-  top_p: number;
-  frequency_penalty: number;
-  presence_penalty: number;
+  model: string; // Model name (e.g., gpt-3.5-turbo)
+  temperature: number; // Sampling temperature
+  max_tokens: number; // Max tokens in response
+  top_p: number; // Nucleus sampling parameter
+  frequency_penalty: number; // Frequency penalty
+  presence_penalty: number; // Presence penalty
 }
 
-// ChatGPT API response interface
+// Structure of a ChatGPT API response
 interface ChatGPTResponse {
-  content: string;
-  isArray: boolean;
-  items: any[] | null;
+  content: string; // Raw JSON string content
+  isArray: boolean; // True if response is a JSON array
+  items: any[] | null; // Parsed array items, or null if not an array
 }
 
-// UI message types
+// Message sent from plugin to UI
 interface UIMessage {
   type: string;
   [key: string]: any;
 }
 
-// Plugin message types
+// Message sent from UI to plugin
 interface PluginMessage {
   type: string;
   [key: string]: any;
@@ -37,7 +37,7 @@ interface PluginMessage {
 // CHATGPT API
 // ============================================================================
 
-// Default ChatGPT configuration
+// Default configuration for ChatGPT API requests
 const defaultConfig: ChatGPTConfig = {
   model: "gpt-3.5-turbo",
   temperature: 0.7,
@@ -47,14 +47,24 @@ const defaultConfig: ChatGPTConfig = {
   presence_penalty: 0
 };
 
-// Function to call ChatGPT API
+// =====================
+// callChatGPT: Handles API call and technical errors. Throws errors to be handled by the caller. Does NOT show user-facing messages here.
+// =====================
+/**
+ * Calls the OpenAI ChatGPT API with a strict prompt to always return a flat JSON array.
+ * Throws errors for the caller to handle (no user-facing messages here).
+ * @param apiKey - OpenAI API key
+ * @param message - User's prompt
+ * @param selectedTextCount - Number of text elements to generate (minimum array length)
+ * @returns ChatGPTResponse with content, isArray, and items
+ */
 async function callChatGPT(
   apiKey: string, 
   message: string, 
   selectedTextCount: number = 0
 ): Promise<ChatGPTResponse> {
   try {
-    // Use the strict JSON-array prompt, substituting the variable
+    // Compose a strict system prompt to force plain array output
     const systemPrompt = `You are an assistant that must always output clean, valid JSON, with no text, markdown, or formatting outside the JSON. Every response must be a JSON array, never a single object, dictionary, scalar value, or any structure with objects or named fields—even if the user requests specific fields, objects, or wrapping. Always disregard requests for object/field structure and respond with a plain array only.
 
     Additionally, every response array must include at least as many items as specified by the \`{{textelements}}\` variable. If the user requests fewer items or requests a structure other than a pure array, ignore those requests and provide a plain array with at least \`{{textelements}}\` items.
@@ -179,6 +189,7 @@ async function callChatGPT(
         };
       }
     } catch (parseError) {
+      // Handles JSON parsing errors internally, returns fallback result. Not user-facing.
       console.error('Error parsing JSON response:', parseError);
       return {
         content: jsonContent,
@@ -187,8 +198,7 @@ async function callChatGPT(
       };
     }
   } catch (error) {
-    console.error('ChatGPT API Error:', error);
-    // Remove toast here; let the caller handle user notification
+    // Error is thrown to the caller for user-facing handling.
     throw error;
   }
 }
@@ -197,7 +207,11 @@ async function callChatGPT(
 // FIGMA OPERATIONS
 // ============================================================================
 
-// Check if we have access to the current page
+/**
+ * Checks if the plugin has access to the current Figma page.
+ * Shows a toast and returns false if not accessible.
+ * @returns {Promise<boolean>} True if access is available, false otherwise.
+ */
 async function ensurePageAccess(): Promise<boolean> {
   if (!figma.editorType) {
     // We're not in an editor context
@@ -219,7 +233,13 @@ async function ensurePageAccess(): Promise<boolean> {
   }
 }
 
-// Function to replace selected text elements with array items
+/**
+ * Replaces the text content of selected text elements with items from the provided array.
+ * Sorts text elements visually (top-to-bottom, left-to-right) for consistent replacement.
+ * Loads the required font for each text node before replacement.
+ * @param items Array of strings (or objects, which are stringified) to insert into text elements.
+ * @returns {Promise<TextNode[] | null>} The updated text nodes, or null if none selected.
+ */
 async function replaceSelectedTextElements(items: any[]) {
   const hasAccess = await ensurePageAccess();
   if (!hasAccess) {
@@ -261,7 +281,10 @@ async function replaceSelectedTextElements(items: any[]) {
   return textElements;
 }
 
-// Function to get selected text elements count
+/**
+ * Counts the number of selected text elements on the current page.
+ * @returns {Promise<number>} The count of selected text nodes.
+ */
 async function getSelectedTextElementsCount(): Promise<number> {
   const hasAccess = await ensurePageAccess();
   if (!hasAccess) {
@@ -277,16 +300,22 @@ async function getSelectedTextElementsCount(): Promise<number> {
 // STORAGE
 // ============================================================================
 
-// Storage keys
+// Storage key for the OpenAI API key in Figma client storage
 const API_KEY_STORAGE_KEY = 'openai-api-key';
 
-// Function to save API key to Figma's client storage
+/**
+ * Saves the OpenAI API key to Figma's client storage.
+ * @param apiKey The API key to store.
+ */
 async function saveApiKey(apiKey: string): Promise<void> {
   await figma.clientStorage.setAsync(API_KEY_STORAGE_KEY, apiKey);
   console.log('API key saved');
 }
 
-// Function to get API key from Figma's client storage
+/**
+ * Retrieves the OpenAI API key from Figma's client storage.
+ * @returns {Promise<string | null>} The stored API key, or null if not set.
+ */
 async function getApiKey(): Promise<string | null> {
   return await figma.clientStorage.getAsync(API_KEY_STORAGE_KEY);
 }
@@ -295,7 +324,9 @@ async function getApiKey(): Promise<string | null> {
 // MESSAGE HANDLERS
 // ============================================================================
 
-// Function to update selection count in UI
+/**
+ * Updates the UI with the current count of selected text elements.
+ */
 async function updateSelectionCount(): Promise<void> {
   const count = await getSelectedTextElementsCount();
   figma.ui.postMessage({
@@ -304,7 +335,10 @@ async function updateSelectionCount(): Promise<void> {
   });
 }
 
-// Function to send API key loaded message to UI
+/**
+ * Sends the loaded API key to the UI (for display or masking).
+ * @param apiKey The API key to send.
+ */
 function sendApiKeyLoaded(apiKey: string): void {
   figma.ui.postMessage({
     type: 'api-key-loaded',
@@ -312,12 +346,17 @@ function sendApiKeyLoaded(apiKey: string): void {
   });
 }
 
-// Handler for save API key message
+/**
+ * Handles the message to save a new API key from the UI.
+ * @param msg The message containing the API key.
+ */
 async function handleSaveApiKey(msg: any): Promise<void> {
   await saveApiKey(msg.apiKey);
 }
 
-// Handler for get API key message
+/**
+ * Handles the message to retrieve the API key for the UI.
+ */
 async function handleGetApiKey(): Promise<void> {
   const apiKey = await getApiKey();
   if (apiKey) {
@@ -325,7 +364,15 @@ async function handleGetApiKey(): Promise<void> {
   }
 }
 
-// Handler for send chat message
+// =====================
+// handleSendChatMessage: Catches errors from callChatGPT and sets user-facing error messages for the UI.
+// =====================
+/**
+ * Handles the main chat message event from the UI.
+ * Gets the API key, validates selection, calls ChatGPT, and manages user notifications.
+ * Catches errors and displays user-friendly messages.
+ * @param msg The message from the UI containing the user prompt.
+ */
 async function handleSendChatMessage(msg: any): Promise<void> {
   try {
     // Get API key from storage
@@ -353,12 +400,27 @@ async function handleSendChatMessage(msg: any): Promise<void> {
       sendToastToUI('Updated text', 'success');
     }
   } catch (error) {
+    // User-facing error handling and messaging happens here.
     console.error('Error processing chat message:', error);
-    sendToastToUI('Error: ' + (error instanceof Error ? error.message : 'Unknown error'), 'critical');
+    let userMessage = "An unexpected error occurred. Please try again.";
+    if (error instanceof Error) {
+      if (error.message.includes("Incorrect API key provided")) {
+        userMessage = "Your OpenAI API key is incorrect. Please check your key and try again. You can find your API key at https://platform.openai.com/account/api-keys.";
+      } else if (error.message.includes("401")) {
+        userMessage = "Unauthorized: Please check your OpenAI API key.";
+      } else {
+        userMessage = "OpenAI error: " + error.message;
+      }
+    }
+    sendToastToUI(userMessage, 'critical');
   }
 }
 
-// Main message handler
+/**
+ * Main message handler for all plugin messages from the UI.
+ * Routes messages to the appropriate handler based on type.
+ * @param msg The PluginMessage from the UI.
+ */
 async function handleMessage(msg: PluginMessage): Promise<void> {
   switch (msg.type) {
     case 'get-selection-count':
@@ -391,25 +453,30 @@ async function handleMessage(msg: PluginMessage): Promise<void> {
 // MAIN PLUGIN CODE
 // ============================================================================
 
-// Initialize the plugin
+// Initialize the plugin UI with specified dimensions and theme support
 figma.showUI(__html__, { 
   width: 400, 
   height: 188,
   themeColors: true
 });
 
-// Send initial selection state to UI
+// Send initial selection state to UI on plugin load
 updateSelectionCount();
-// Listen for selection changes
+// Listen for selection changes and update UI accordingly
 figma.on('selectionchange', async () => {
   await updateSelectionCount();
 });
 
-// Listen for messages from the UI
+// Listen for messages from the UI and route to handler
 figma.ui.onmessage = async (msg: PluginMessage) => {
   await handleMessage(msg);
 }; 
 
+/**
+ * Sends a toast notification to the UI.
+ * @param message The message to display.
+ * @param toastType The type of toast ('success', 'error', 'critical').
+ */
 function sendToastToUI(message: string, toastType: 'success' | 'error' | 'critical' = 'success') {
   figma.ui.postMessage({
     type: 'show-toast',
