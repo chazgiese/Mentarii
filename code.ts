@@ -473,8 +473,6 @@ async function handleSendChatMessage(msg: any): Promise<void> {
       figma.ui.postMessage({ type: 'chat-complete' });
       return;
     }
-    // Show loading state
-    sendToastToUI('🤔 Thinking...', 'success');
     // Call ChatGPT API
     const aiResponse = await callChatGPT(apiKey, msg.message, selectedTextCount);
     let result;
