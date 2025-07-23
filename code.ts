@@ -431,6 +431,7 @@ function sendApiKeyLoaded(apiKey: string): void {
 async function handleSaveApiKey(msg: any): Promise<void> {
   if (!msg.apiKey) {
     await deleteApiKey();
+    await updateSelectionCount(); // Update selection state in UI after API key deletion
   } else {
     await saveApiKey(msg.apiKey);
   }
