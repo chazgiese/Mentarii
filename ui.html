@@ -577,7 +577,11 @@
       updateChatInputState();
     });
     // On load, update chat input state
-    window.addEventListener('DOMContentLoaded', updateChatInputState);
+    window.addEventListener('DOMContentLoaded', () => {
+      updateChatInputState();
+      // Always request the saved API key from the plugin on load
+      parent.postMessage({ pluginMessage: { type: 'get-api-key' } }, '*');
+    });
     // Also update when API key is loaded from storage
     window.addEventListener('message', (event) => {
       if (event.data.pluginMessage && event.data.pluginMessage.type === 'api-key-loaded') {
