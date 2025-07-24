@@ -160,11 +160,25 @@ async function callChatGPT(
         const errorData = JSON.parse(rawText);
         if (errorData.error?.message) {
           errorMessage = errorData.error.message;
-        } else if (response.status === 401) {
-          errorMessage = 'Invalid API key. Please check your OpenAI API key.';
+        }
+        if (response.status === 401) {
+          errorMessage = 'Invalid API key';
         } else if (response.status === 429) {
-          errorMessage = 'You have exceeded your OpenAI API quota. Please check your usage and billing at https://platform.openai.com/account/usage.';
-        } else {
+          // Check for OpenAI error subcodes
+          const code = errorData.error?.code;
+          if (code === 'rate_limit_exceeded') {
+            errorMessage = 'Rate limit exceeded';
+          } else if (code === 'tokens_exceeded') {
+            errorMessage = 'Too many tokens sent in a short time period';
+          } else if (code === 'requests_exceeded') {
+            errorMessage = 'Too many requests per minute/hour/day';
+          } else if (code === 'context_length_exceeded') {
+            errorMessage = 'Please shorten your input';
+          } else {
+            // fallback to generic quota message if no subcode
+            errorMessage = 'OpenAI API quota exceeded';
+          }
+        } else if (!errorData.error?.message) {
           errorMessage = response.statusText;
         }
       } catch (e) {
@@ -495,14 +509,14 @@ async function handleSendChatMessage(msg: any): Promise<void> {
   } catch (error) {
     // User-facing error handling and messaging happens here.
     console.error('Error processing chat message:', error);
-    let userMessage = "An unexpected error occurred. Please try again.";
+    let userMessage = "Unexpected error. Please try again.";
     if (error instanceof Error) {
       if (error.message.includes("Incorrect API key provided")) {
         userMessage = "Your OpenAI API key is incorrect. Please check your key and try again. You can find your API key at https://platform.openai.com/account/api-keys.";
       } else if (error.message.includes("401")) {
         userMessage = "Unauthorized: Please check your OpenAI API key.";
       } else {
-        userMessage = "OpenAI error: " + error.message;
+        userMessage = error.message;
       }
     }
     sendToastToUI(userMessage, 'critical');

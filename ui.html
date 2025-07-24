@@ -8,13 +8,16 @@
     /*
       Main body styling: sets font, padding, background, and text color to match Figma's theme.
     */
+    * {
+      box-sizing: border-box;
+    }
     body {
-      font-family: Inter, sans-serif;
-      margin: 0;
-      padding: 20px;
       background-color: var(--figma-color-bg);
       color: var(--figma-color-text);
+      font-family: Inter, sans-serif;
+      margin: 0;
       overflow-y: auto;
+      padding: 20px;
     }
     
     /* Chat section container */
@@ -26,25 +29,24 @@
     .chat-input-container {
       display: flex;
       position: relative;
-      box-sizing: border-box;
     }
     
     /* Editable chat input area */
     .chat-input {
       background-color: var(--figma-color-bg-secondary);
-      flex: 1;
-      padding: 12px 16px 56px;
       border-radius: 16px;
       box-sizing: border-box;
-      font-size: 13px;
+      flex: 1;
       font-family: Inter, sans-serif;
+      font-size: 13px;
       font-weight: 400;
       height: 148px;
-      min-height: 148px;
       line-height: 20px;
+      min-height: 148px;
       overflow-y: auto;
-      word-wrap: break-word;
+      padding: 12px 16px 56px;
       white-space: pre-wrap;
+      word-wrap: break-word;
       outline: none;
     }
     .chat-input:focus {
@@ -52,88 +54,88 @@
     }
     /* Placeholder styling for empty chat input */
     .chat-input[data-placeholder]:empty:before {
-      content: attr(data-placeholder);
       color: var(--figma-color-text-disabled);
+      content: attr(data-placeholder);
       pointer-events: none;
     }
 
-    .selection-state {
+    .api-key-status {
+      color: var(--figma-color-text-secondary);
       font-size: 11px;
       letter-spacing: 1%;
       padding-right: 4px;
-      color: var(--figma-color-text-secondary);
     }
 
     /* Chat button (API key icon) styling */
     .chat-button {
-      display: flex;
       align-items: center;
-      justify-content: center;
       background: none;
       border: none;
       border-radius: 16px;
+      bottom: 8px;
+      cursor: pointer;
+      display: flex;
+      gap: 8px;
+      height: 32px;
+      justify-content: center;
+      left: 8px;
+      min-width: 32px;
       padding: 8px;
       position: absolute;
-      height: 32px;
-      min-width: 32px;
-      bottom: 8px;
-      left: 8px;
-      gap: 8px;
-      cursor: pointer;
     }
     .chat-button:hover {
       background: var(--figma-color-bg-tertiary);
     }
     .chat-button svg {
-      width: 16px;
-      height: 16px;
       display: block;
       fill: var(--figma-color-text);
+      height: 16px;
+      width: 16px;
     }
 
     /* Send button styling */
     .send-button {
-      width: 32px;
-      height: 32px;
-      min-width: 32px;
-      min-height: 32px;
-      max-width: 32px;
-      max-height: 32px;
-      padding: 0;
+      align-items: center;
       background: var(--figma-color-bg-brand);
-      color: var(--figma-color-text-on-brand);
       border: none;
       border-radius: 16px;
+      color: var(--figma-color-text-on-brand);
+      cursor: pointer;
       display: flex;
-      align-items: center;
-      justify-content: center;
       font-size: 18px;
       font-weight: 500;
-      cursor: pointer;
-      transition: background 0.2s;
+      height: 32px;
+      justify-content: center;
+      left: auto;
+      max-height: 32px;
+      max-width: 32px;
+      min-height: 32px;
+      min-width: 32px;
+      padding: 0;
       position: absolute;
       right: 8px;
+      transition: background 0.2s;
+      width: 32px;
       bottom: 8px;
     }
     .send-button svg {
-      width: 16px;
-      height: 16px;
       display: block;
       fill: var(--figma-color-icon-onbrand);
+      height: 16px;
+      width: 16px;
     }
     .send-button.loading {
-      background: #6C757D;
       cursor: not-allowed;
     }
     .send-button.loading::after {
+      animation: spin 1s linear infinite;
+      border: 2px solid transparent;
+      border-radius: 50%;
+      border-top: 2px solid var(--figma-color-icon-onbrand);
       content: '';
       display: inline-block;
-      width: 12px;
       height: 12px;
-      border: 2px solid transparent;
-      border-top: 2px solid var(--figma-color-icon-onbrand);
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
+      width: 12px;
     }
     .send-button:disabled {
       background: var(--figma-color-bg-disabled);
@@ -148,49 +150,49 @@
     
     /* Modal for entering API key */
     .api-key-modal {
+      align-items: center;
+      background: rgba(0,0,0,0.4);
       display: none;
+      height: 100vh;
+      justify-content: center;
+      left: 0;
       position: fixed;
       top: 0;
-      left: 0;
       width: 100vw;
-      height: 100vh;
-      background: rgba(0,0,0,0.4);
       z-index: 1000;
-      align-items: center;
-      justify-content: center;
     }
     .api-key-modal-content {
       background: var(--figma-color-bg);
-      padding: 0px;
       border-radius: 12px;
       box-shadow: 0 2px 16px rgba(0,0,0,0.15);
       min-width: 320px;
+      padding: 0px;
       position: relative;
     }
     .api-key-modal-header {
-      display: flex;
-      justify-content: space-between;
       align-items: center;
-      padding: 0px 20px;
       border-bottom: 1px solid var(--figma-color-border);
-      height: 40px;
+      display: flex;
       font-size: 11px;
+      height: 40px;
+      justify-content: space-between;
       letter-spacing: 1%;
+      padding: 0px 20px;
     }
     .close-modal {
-      position: absolute;
-      top: 8px;
-      right: 8px;
-      background: none;
-      display: flex;
       align-items: center;
-      justify-content: center;
-      height: 24px;
-      width: 24px;
+      background: none;
       border: none;
       border-radius: 4px;
       cursor: auto;
+      display: flex;
+      height: 24px;
+      justify-content: center;
       padding: 0px;
+      position: absolute;
+      right: 8px;
+      top: 8px;
+      width: 24px;
     }
     .close-modal svg {
       fill: var(--figma-color-icon);
@@ -203,54 +205,55 @@
       position: relative;
     }
     .api-key-input {
-      width: 100%;
       background-color: var(--figma-color-bg-secondary);
-      padding: 8px 32px 8px 8px;
       border: none;
       border-radius: 6px;
-      font-size: 13px;
-      line-height: 20px;
-      font-family: monospace;
       box-sizing: border-box;
       color: var(--figma-color-text);
+      font-family: monospace;
+      font-size: 13px;
+      line-height: 20px;
+      padding: 8px 32px 8px 8px;
+      width: 100%;
     }
     .api-key-input:focus {
-      outline: none;
       border-color: none;
       box-shadow: none;
+      outline: none;
     }
-    .api-key-status {
-      font-size: 12px;
-      padding: 0px;
-      border-radius: 4px;
-      width: 16px;
-      height: 16px;
-      display: none;
+    .api-key-input-status {
       align-items: center;
-      justify-content: center;
+      border-radius: 4px;
       border-radius: 8px;
+      display: none;
+      display: none;
+      font-size: 12px;
+      height: 16px;
+      justify-content: center;
+      padding: 0px;
       position: absolute;
       top: 30px;
+      width: 16px;
       right: 28px;
     }
-    .api-key-status.valid {
+    .api-key-input-status.valid {
       background: var(--figma-color-bg-success);
       color: var(--figma-color-icon-oninverse);
       display: flex;
     }
-    .api-key-status.invalid {
+    .api-key-input-status.invalid {
       background: var(--figma-color-bg-danger);
       color: var(--figma-color-icon-oninverse);
       display: flex;
     }
     .api-key-info {
+      color: var(--figma-color-text-disabled);
+      display: block;
       font-size: 11px;
       line-height: 16px;
-      padding: 0px;
-      color: var(--figma-color-text-disabled);
-      text-decoration: none;
-      display: block;
       margin-top: 8px;
+      padding: 0px;
+      text-decoration: none;
     }
     .api-key-info a {
       color: var(--figma-color-text-brand);
@@ -260,55 +263,78 @@
       text-decoration: underline;
     }
     /* Toast styles */
+    .toast-container {
+      bottom: 16px;
+      display: flex;
+      justify-content: center;
+      left: 0;
+      padding: 0 32px 0;
+      pointer-events: none;
+      position: fixed;
+      right: 0;
+      z-index: 9999;
+    }
     .toast {
-      max-width: 200px;
-      padding: 14px 28px;
+      align-items: center;
+      background: none;
       border-radius: 12px;
-      box-shadow: 0 2px 16px rgba(0,0,0,0.15);
-      font-size: 15px;
+      box-shadow: 0px 3px 8px rgba(0, 0, 0, .35), 0px 1px 3px rgba(0, 0, 0, .5), inset 0px .5px 0px rgba(255, 255, 255, .08), inset 0px 0px .5px rgba(255, 255, 255, .3);
+      box-sizing: border-box;
+      color: inherit;
+      display: flex;
+      font-size: 11px;
+      font-weight: 500;
+      height: 40px;
+      justify-content: center;
+      line-height: 16px;
       margin: 0 auto;
-      font-weight: bold;
-      transition: all 0.4s cubic-bezier(.4,0,.2,1);
-      pointer-events: auto;
+      max-height: 40px;
+      max-width: 100%;
       opacity: 0;
-      transform: translateY(100px);
+      overflow: hidden;
+      pointer-events: auto;
       position: relative;
+      transition: all 0.4s cubic-bezier(.4,0,.2,1);
+      transform: translateY(100px);
       z-index: 10000;
     }
     .toast-success {
-      background: #23272f;
-      color: #fff;
+      background: #2C2C2C;
+      color: #FFFFFF;
     }
     .toast-error {
-      background: #ffeaea;
-      color: #b00020;
+      background: #2C2C2C;
+      color: #FFFFFF;
     }
     .toast-critical {
-      background: #b00020;
-      color: #fff;
-      border: 2px solid #fff;
+      background: var(--figma-color-bg-danger);
+      color: var(--figma-color-text-ondanger);
     }
     .toast.show {
       opacity: 1;
       transform: translateY(0);
     }
     .toast-close-btn {
-      position: absolute;
-      top: 8px;
-      right: 16px;
+      align-self: stretch;
       background: transparent;
-      color: #fff;
       border: none;
-      font-size: 18px;
+      border-left: 1px solid var(--figma-color-border-ondanger);
+      color: var(--figma-color-text-ondanger);
       cursor: pointer;
-      font-weight: bold;
+      padding: 12px;
       pointer-events: auto;
     }
-    .toast-error .toast-close-btn {
-      color: #b00020;
+    .toast-close-btn svg {
+      fill: var(--figma-color-text-ondanger);
     }
-    .toast-success .toast-close-btn {
-      color: #fff;
+    .toast-close-btn:hover {
+      background: var(--figma-color-bg-danger-hover);
+    }
+    .toast-message {
+      overflow: hidden;
+      padding: 8px 16px;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
   </style>
 </head>
@@ -319,7 +345,6 @@
   <div class="container">
     
     <div class="chat-section">
-      
       <!-- Chat selection state display (shows how many text elements are selected) -->
       <div class="chat-input-container">
         <!-- Main chat input area (contenteditable for multi-line prompts) -->
@@ -331,7 +356,7 @@
         ></div>
         <!-- API key icon button (opens modal) -->
         <button class="chat-button" id="key-icon" title="Set API Key">
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M2.5 5.49998H4.5625C4.67265 5.93019 4.92285 6.3115 5.27365 6.5838C5.62446 6.85611 6.05591 7.00391 6.5 7.00391C6.94409 7.00391 7.37554 6.85611 7.72635 6.5838C8.07715 6.3115 8.32735 5.93019 8.4375 5.49998H13.5C13.6326 5.49998 13.7598 5.44731 13.8536 5.35354C13.9473 5.25977 14 5.13259 14 4.99998C14 4.86738 13.9473 4.7402 13.8536 4.64643C13.7598 4.55266 13.6326 4.49998 13.5 4.49998H8.4375C8.32735 4.06978 8.07715 3.68847 7.72635 3.41617C7.37554 3.14386 6.94409 2.99606 6.5 2.99606C6.05591 2.99606 5.62446 3.14386 5.27365 3.41617C4.92285 3.68847 4.67265 4.06978 4.5625 4.49998H2.5C2.36739 4.49998 2.24021 4.55266 2.14645 4.64643C2.05268 4.7402 2 4.86738 2 4.99998C2 5.13259 2.05268 5.25977 2.14645 5.35354C2.24021 5.44731 2.36739 5.49998 2.5 5.49998ZM6.5 3.99998C6.69778 3.99998 6.89112 4.05863 7.05557 4.16852C7.22002 4.2784 7.34819 4.43458 7.42388 4.6173C7.49957 4.80003 7.51937 5.00109 7.48079 5.19508C7.4422 5.38906 7.34696 5.56724 7.20711 5.70709C7.06725 5.84694 6.88907 5.94219 6.69509 5.98077C6.50111 6.01936 6.30004 5.99955 6.11732 5.92386C5.93459 5.84818 5.77841 5.72 5.66853 5.55556C5.55865 5.39111 5.5 5.19777 5.5 4.99998C5.5 4.73477 5.60536 4.48041 5.79289 4.29288C5.98043 4.10534 6.23478 3.99998 6.5 3.99998ZM13.5 10.5H12.4375C12.3273 10.0698 12.0771 9.68847 11.7263 9.41617C11.3755 9.14386 10.9441 8.99606 10.5 8.99606C10.0559 8.99606 9.62446 9.14386 9.27365 9.41617C8.92285 9.68847 8.67265 10.0698 8.5625 10.5H2.5C2.36739 10.5 2.24021 10.5527 2.14645 10.6464C2.05268 10.7402 2 10.8674 2 11C2 11.1326 2.05268 11.2598 2.14645 11.3535C2.24021 11.4473 2.36739 11.5 2.5 11.5H8.5625C8.67265 11.9302 8.92285 12.3115 9.27365 12.5838C9.62446 12.8561 10.0559 13.0039 10.5 13.0039C10.9441 13.0039 11.3755 12.8561 11.7263 12.5838C12.0771 12.3115 12.3273 11.9302 12.4375 11.5H13.5C13.6326 11.5 13.7598 11.4473 13.8536 11.3535C13.9473 11.2598 14 11.1326 14 11C14 10.8674 13.9473 10.7402 13.8536 10.6464C13.7598 10.5527 13.6326 10.5 13.5 10.5ZM10.5 12C10.3022 12 10.1089 11.9413 9.94443 11.8315C9.77998 11.7216 9.65181 11.5654 9.57612 11.3827C9.50043 11.1999 9.48063 10.9989 9.51921 10.8049C9.5578 10.6109 9.65304 10.4327 9.79289 10.2929C9.93275 10.153 10.1109 10.0578 10.3049 10.0192C10.4989 9.98061 10.7 10.0004 10.8827 10.0761C11.0654 10.1518 11.2216 10.28 11.3315 10.4444C11.4414 10.6089 11.5 10.8022 11.5 11C11.5 11.2652 11.3946 11.5196 11.2071 11.7071C11.0196 11.8946 10.7652 12 10.5 12Z" fill="inherit"/></svg><div class="selection-state" id="selection-state"></div>
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M2.5 5.49998H4.5625C4.67265 5.93019 4.92285 6.3115 5.27365 6.5838C5.62446 6.85611 6.05591 7.00391 6.5 7.00391C6.94409 7.00391 7.37554 6.85611 7.72635 6.5838C8.07715 6.3115 8.32735 5.93019 8.4375 5.49998H13.5C13.6326 5.49998 13.7598 5.44731 13.8536 5.35354C13.9473 5.25977 14 5.13259 14 4.99998C14 4.86738 13.9473 4.7402 13.8536 4.64643C13.7598 4.55266 13.6326 4.49998 13.5 4.49998H8.4375C8.32735 4.06978 8.07715 3.68847 7.72635 3.41617C7.37554 3.14386 6.94409 2.99606 6.5 2.99606C6.05591 2.99606 5.62446 3.14386 5.27365 3.41617C4.92285 3.68847 4.67265 4.06978 4.5625 4.49998H2.5C2.36739 4.49998 2.24021 4.55266 2.14645 4.64643C2.05268 4.7402 2 4.86738 2 4.99998C2 5.13259 2.05268 5.25977 2.14645 5.35354C2.24021 5.44731 2.36739 5.49998 2.5 5.49998ZM6.5 3.99998C6.69778 3.99998 6.89112 4.05863 7.05557 4.16852C7.22002 4.2784 7.34819 4.43458 7.42388 4.6173C7.49957 4.80003 7.51937 5.00109 7.48079 5.19508C7.4422 5.38906 7.34696 5.56724 7.20711 5.70709C7.06725 5.84694 6.88907 5.94219 6.69509 5.98077C6.50111 6.01936 6.30004 5.99955 6.11732 5.92386C5.93459 5.84818 5.77841 5.72 5.66853 5.55556C5.55865 5.39111 5.5 5.19777 5.5 4.99998C5.5 4.73477 5.60536 4.48041 5.79289 4.29288C5.98043 4.10534 6.23478 3.99998 6.5 3.99998ZM13.5 10.5H12.4375C12.3273 10.0698 12.0771 9.68847 11.7263 9.41617C11.3755 9.14386 10.9441 8.99606 10.5 8.99606C10.0559 8.99606 9.62446 9.14386 9.27365 9.41617C8.92285 9.68847 8.67265 10.0698 8.5625 10.5H2.5C2.36739 10.5 2.24021 10.5527 2.14645 10.6464C2.05268 10.7402 2 10.8674 2 11C2 11.1326 2.05268 11.2598 2.14645 11.3535C2.24021 11.4473 2.36739 11.5 2.5 11.5H8.5625C8.67265 11.9302 8.92285 12.3115 9.27365 12.5838C9.62446 12.8561 10.0559 13.0039 10.5 13.0039C10.9441 13.0039 11.3755 12.8561 11.7263 12.5838C12.0771 12.3115 12.3273 11.9302 12.4375 11.5H13.5C13.6326 11.5 13.7598 11.4473 13.8536 11.3535C13.9473 11.2598 14 11.1326 14 11C14 10.8674 13.9473 10.7402 13.8536 10.6464C13.7598 10.5527 13.6326 10.5 13.5 10.5ZM10.5 12C10.3022 12 10.1089 11.9413 9.94443 11.8315C9.77998 11.7216 9.65181 11.5654 9.57612 11.3827C9.50043 11.1999 9.48063 10.9989 9.51921 10.8049C9.5578 10.6109 9.65304 10.4327 9.79289 10.2929C9.93275 10.153 10.1109 10.0578 10.3049 10.0192C10.4989 9.98061 10.7 10.0004 10.8827 10.0761C11.0654 10.1518 11.2216 10.28 11.3315 10.4444C11.4414 10.6089 11.5 10.8022 11.5 11C11.5 11.2652 11.3946 11.5196 11.2071 11.7071C11.0196 11.8946 10.7652 12 10.5 12Z" fill="inherit"/></svg><div class="api-key-status" id="api-key-status"></div>
         </button>
         <!-- Send button (triggers prompt submission) -->
         <button class="send-button" id="send-button" disabled aria-label="Send">
@@ -339,7 +364,6 @@
         </button>
       </div>
       
-      <!-- Removed response-area div -->
     </div>
 
     <!-- API Key Modal for entering and validating OpenAI API key -->
@@ -355,11 +379,11 @@
           <input 
           type="password" 
           class="api-key-input" 
-          id="api-key-input-modal" 
+          id="api-key-input" 
           placeholder="sk-..."
           autocomplete="off"
           />
-          <div class="api-key-status" id="api-key-status-modal"></div>
+          <div class="api-key-input-status" id="api-key-input-status"></div>
           <div class="api-key-info">Keys are stored locally and only sent to OpenAI.<br/><a href="https://chatgpt.com/canvas/shared/687ead3443688191840cc7e8bb6087c5" target="_blank">API key guide</a></div>
         </div>
       </div>
@@ -367,55 +391,65 @@
   </div>
 
   <!-- Toast notification container (for success, error, and critical messages) -->
-  <div id="toast-container" style="position: fixed; left: 0; right: 0; bottom: 24px; display: flex; justify-content: center; z-index: 9999; pointer-events: none;"></div>
+  <div class="toast-container" id="toast-container"></div>
 
   <!-- ========================= -->
   <!--      JAVASCRIPT LOGIC     -->
   <!-- ========================= -->
   <script>
-    // --- Chat functionality and state ---
-    const chatInput = document.getElementById('chat-input');
-    const sendButton = document.getElementById('send-button');
-    // Removed responseArea (no longer used)
-    
-    // Track selection count for UI feedback
-    let selectedTextCount = 0;
-    const selectionState = document.getElementById('selection-state');
-    let currentApiKey = '';
+    // =========================
+    //   DOMContentLoaded/init
+    // =========================
+    document.addEventListener('DOMContentLoaded', () => {
+      selectDomElements();
+      updateChatInputState();
+      parent.postMessage({ pluginMessage: { type: 'get-api-key' } }, '*');
+      autoResize();
+      addEventListeners();
+    });
 
-    function isApiKeyValid(key) {
-      return key && key.startsWith('sk-') && key.length > 20;
+    // =========================
+    //   DOM ELEMENT SELECTION
+    // =========================
+    let chatInput, sendButton, apiKeyStatus, keyIcon, apiKeyModal, apiKeyInput, apiKeyStatusModal, closeModal;
+    let selectedTextCount = 0;
+    let currentApiKey = '';
+    let apiKeyInputSaveTimeout;
+
+    function selectDomElements() {
+      chatInput = document.getElementById('chat-input');
+      sendButton = document.getElementById('send-button');
+      apiKeyStatus = document.getElementById('api-key-status');
+      keyIcon = document.getElementById('key-icon');
+      apiKeyModal = document.getElementById('api-key-modal');
+      apiKeyInput = document.getElementById('api-key-input');
+      apiKeyStatusModal = document.getElementById('api-key-input-status');
+      closeModal = document.getElementById('close-modal');
     }
 
-    // Updates the selection state display (e.g., '2 selected', 'add api key')
-    function updateSelectionState() {
+    // =========================
+    //     UTILITY FUNCTIONS
+    // =========================
+    function isApiKeyValid(key) {
+      return key.startsWith('sk-') && key.length > 20;
+    }
+    function updateApiKeyStatus() {
       if (!isApiKeyValid(currentApiKey)) {
-        selectionState.textContent = 'Set API key';
-        selectionState.style.cursor = 'pointer';
-        selectionState.onclick = () => {
+        apiKeyStatus.textContent = 'Set API key';
+        apiKeyStatus.style.cursor = 'pointer';
+        apiKeyStatus.onclick = () => {
           apiKeyModal.style.display = 'flex';
           parent.postMessage({ pluginMessage: { type: 'get-api-key' } }, '*');
         };
-      } else if (selectedTextCount < 1) {
-        selectionState.textContent = 'select text';
-        selectionState.style.cursor = 'default';
-        selectionState.onclick = null;
+        apiKeyStatus.style.display = '';
       } else {
-        selectionState.textContent = `${selectedTextCount} selected`;
-        selectionState.style.cursor = 'pointer';
-        selectionState.onclick = () => {
-          parent.postMessage({ pluginMessage: { type: 'deselect-all' } }, '*');
-        };
+        apiKeyStatus.style.display = 'none';
       }
     }
-
-    // Enable/disable send button based only on chat input content
     function updateSendButton() {
       const hasContent = chatInput.textContent.trim().length > 0;
       sendButton.disabled = !hasContent || sendButton.classList.contains('loading');
     }
-    
-    // --- Loading state for send button ---
     function setLoading(loading) {
       if (loading) {
         sendButton.classList.add('loading');
@@ -426,184 +460,107 @@
       }
       updateSendButton();
     }
-    
-    // --- Auto-resize chat input for multi-line prompts ---
     function autoResize() {
       chatInput.style.height = 'auto';
       const scrollHeight = chatInput.scrollHeight;
-      const maxHeight = 148; // matches CSS max-height
+      const maxHeight = 148;
       chatInput.style.height = Math.min(scrollHeight, maxHeight) + 'px';
     }
-    
-    // --- Event listeners for chat input and send button ---
-    chatInput.addEventListener('input', () => {
-      updateSendButton();
-      autoResize();
-    });
-    // Send message on button click
-    sendButton.addEventListener('click', () => {
-      const message = chatInput.textContent.trim();
-      // Check for valid API key first
-      if (!isApiKeyValid(currentApiKey)) {
-        showToast('no valid api key', 'error');
-        return;
-      }
-      // Then check for selection
-      if (selectedTextCount < 1) {
-        showToast('please select at least one text element to replace.', 'error');
-        return;
-      }
-      if (message && !sendButton.classList.contains('loading')) {
-        setLoading(true);
-        parent.postMessage({ 
-          pluginMessage: { 
-            type: 'send-chat-message',
-            message: message 
-          } 
-        }, '*');
-        chatInput.textContent = '';
-        updateSendButton();
-      }
-    });
-    // Allow Enter to send, Shift+Enter for newline
-    chatInput.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' && !e.shiftKey) {
-        e.preventDefault();
-        sendButton.click();
-      }
-    });
-    // Initialize the input height
-    autoResize();
-    
-    // --- Selection state updates from plugin ---
-    // Listen for selection updates from plugin
-    window.addEventListener('message', (event) => {
-      if (event.data.pluginMessage && event.data.pluginMessage.type === 'selection-update') {
-        selectedTextCount = event.data.pluginMessage.count;
-        updateSelectionState();
-        updateSendButton();
-      }
-      // Handle API key loaded from plugin
-      if (event.data.pluginMessage && event.data.pluginMessage.type === 'api-key-loaded') {
-        const savedApiKey = event.data.pluginMessage.apiKey;
-        currentApiKey = savedApiKey || '';
-        apiKeyInputModal.value = savedApiKey || '';
-        updateApiKeyStatusModal(savedApiKey);
-        updateSelectionState();
-      }
-    });
-
-    // --- API Key Modal logic ---
-    const keyIcon = document.getElementById('key-icon');
-    const apiKeyModal = document.getElementById('api-key-modal');
-    const apiKeyInputModal = document.getElementById('api-key-input-modal');
-    const apiKeyStatusModal = document.getElementById('api-key-status-modal');
-    const saveApiKeyModal = document.getElementById('save-api-key-modal');
-    const closeModal = document.getElementById('close-modal');
-
-    // Open modal and request saved API key
-    keyIcon.addEventListener('click', () => {
-      apiKeyModal.style.display = 'flex';
-      parent.postMessage({ pluginMessage: { type: 'get-api-key' } }, '*');
-    });
-    // Close modal on button or background click
-    closeModal.addEventListener('click', () => {
-      apiKeyModal.style.display = 'none';
-    });
-    apiKeyModal.addEventListener('click', (e) => {
-      if (e.target === apiKeyModal) apiKeyModal.style.display = 'none';
-    });
-    // Validate API key format (basic check)
-    function validateApiKey(key) {
-      return key.startsWith('sk-') && key.length > 20;
-    }
-    // Update status indicator in modal
-    function updateApiKeyStatusModal(key) {
+    function updateApiKeyInputStatus(key) {
       if (!key) {
-        apiKeyStatusModal.className = 'api-key-status';
+        apiKeyStatusModal.className = 'api-key-input-status';
         apiKeyStatusModal.textContent = '';
         return;
       }
-      if (validateApiKey(key)) {
-        apiKeyStatusModal.className = 'api-key-status valid';
+      if (isApiKeyValid(key)) {
+        apiKeyStatusModal.className = 'api-key-input-status valid';
         apiKeyStatusModal.textContent = '✓';
       } else {
-        apiKeyStatusModal.className = 'api-key-status invalid';
+        apiKeyStatusModal.className = 'api-key-input-status invalid';
         apiKeyStatusModal.textContent = '✗';
       }
     }
-    // Auto-save API key with debounce
-    let apiKeyInputModalSaveTimeout;
-    apiKeyInputModal.addEventListener('input', (e) => {
-      const key = e.target.value;
-      updateApiKeyStatusModal(key);
-      clearTimeout(apiKeyInputModalSaveTimeout);
-      apiKeyInputModalSaveTimeout = setTimeout(() => {
-        if (key === '') {
-          parent.postMessage({ pluginMessage: { type: 'save-api-key', apiKey: '' } }, '*');
-        } else if (validateApiKey(key)) {
-          parent.postMessage({ pluginMessage: { type: 'save-api-key', apiKey: key } }, '*');
-        }
-      }, 500);
-    });
-    // When receiving the saved API key, show it masked and update status
-    window.addEventListener('message', (event) => {
-      if (event.data.pluginMessage && event.data.pluginMessage.type === 'api-key-loaded') {
-        const savedApiKey = event.data.pluginMessage.apiKey;
-        apiKeyInputModal.value = savedApiKey || '';
-        updateApiKeyStatusModal(savedApiKey);
-      }
-    });
-
-    // --- Chat input state based on API key validity ---
-    function isApiKeyValid(key) {
-      return key && key.startsWith('sk-') && key.length > 20;
-    }
-    // Disable chat input and show warning if API key is missing/invalid
     function updateChatInputState() {
-      const key = apiKeyInputModal.value;
-      const chatInput = document.querySelector('.chat-input');
-      if (!isApiKeyValid(key)) {
-        chatInput.disabled = true;
-        chatInput.placeholder = 'Enter a valid OpenAI API key in Settings (🔑) to use the plugin.';
-      } else {
-        chatInput.disabled = false;
-        chatInput.placeholder = 'Type your prompt here...';
-      }
+      updateSendButton();
+      autoResize();
     }
-    apiKeyInputModal.addEventListener('input', (e) => {
-      const key = e.target.value;
-      updateApiKeyStatusModal(key);
-      clearTimeout(apiKeyInputModalSaveTimeout);
-      apiKeyInputModalSaveTimeout = setTimeout(() => {
-        if (key === '') {
-          parent.postMessage({ pluginMessage: { type: 'save-api-key', apiKey: '' } }, '*');
-        } else if (validateApiKey(key)) {
-          parent.postMessage({ pluginMessage: { type: 'save-api-key', apiKey: key } }, '*');
-        }
-      }, 500);
-    });
-    // On load, update chat input state
-    window.addEventListener('DOMContentLoaded', () => {
-      updateChatInputState();
-      // Always request the saved API key from the plugin on load
-      parent.postMessage({ pluginMessage: { type: 'get-api-key' } }, '*');
-    });
-    // Also update when API key is loaded from storage
-    window.addEventListener('message', (event) => {
-      if (event.data.pluginMessage && event.data.pluginMessage.type === 'api-key-loaded') {
-        const savedApiKey = event.data.pluginMessage.apiKey;
-        apiKeyInputModal.value = savedApiKey || '';
-        updateApiKeyStatusModal(savedApiKey);
-        updateChatInputState();
-      }
-    });
 
-    // --- Toast notification logic ---
-    /**
-     * Shows a toast notification (success, error, or critical) at the bottom of the UI.
-     * Critical toasts require manual dismissal; others auto-dismiss after 3s.
-     */
+    // =========================
+    //     CHAT INPUT LOGIC
+    // =========================
+    function addChatInputListeners() {
+      chatInput.addEventListener('input', () => {
+        updateSendButton();
+        autoResize();
+      });
+      sendButton.addEventListener('click', () => {
+        const message = chatInput.textContent.trim();
+        if (!isApiKeyValid(currentApiKey)) {
+          showToast('Missing valid API key', 'critical');
+          return;
+        }
+        if (selectedTextCount < 1) {
+          showToast('First, selected a text element', 'error');
+          return;
+        }
+        if (message && !sendButton.classList.contains('loading')) {
+          setLoading(true);
+          parent.postMessage({ 
+            pluginMessage: { 
+              type: 'send-chat-message',
+              message: message 
+            } 
+          }, '*');
+          chatInput.textContent = '';
+          updateSendButton();
+        }
+      });
+      chatInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+          e.preventDefault();
+          sendButton.click();
+        }
+      });
+    }
+
+    // =========================
+    //    API KEY MODAL LOGIC
+    // =========================
+    function addApiKeyModalListeners() {
+      keyIcon.addEventListener('click', () => {
+        apiKeyModal.style.display = 'flex';
+        parent.postMessage({ pluginMessage: { type: 'get-api-key' } }, '*');
+      });
+      closeModal.addEventListener('click', () => {
+        apiKeyModal.style.display = 'none';
+      });
+      apiKeyModal.addEventListener('click', (e) => {
+        if (e.target === apiKeyModal) apiKeyModal.style.display = 'none';
+      });
+      apiKeyInput.addEventListener('input', (e) => {
+        const key = e.target.value;
+        updateApiKeyInputStatus(key);
+        clearTimeout(apiKeyInputSaveTimeout);
+        if (isApiKeyValid(key)) {
+          currentApiKey = key; // Update currentApiKey before updating status
+          updateApiKeyStatus(); // Hide apiKeyStatus immediately when valid key is entered
+        } else if (key === '') {
+          currentApiKey = '';
+          updateApiKeyStatus(); // Show apiKeyStatus immediately when key is deleted
+        }
+        apiKeyInputSaveTimeout = setTimeout(() => {
+          if (key === '') {
+            parent.postMessage({ pluginMessage: { type: 'save-api-key', apiKey: '' } }, '*');
+          } else if (isApiKeyValid(key)) {
+            parent.postMessage({ pluginMessage: { type: 'save-api-key', apiKey: key } }, '*');
+          }
+        }, 500);
+      });
+    }
+
+    // =========================
+    //   TOAST NOTIFICATION LOGIC
+    // =========================
     function showToast(message, type = 'success') {
       const toastContainer = document.getElementById('toast-container');
       const toast = document.createElement('div');
@@ -615,11 +572,14 @@
       } else {
         toast.classList.add('toast-success');
       }
-      toast.textContent = message;
-      // Add close button for critical toasts
+      // Wrap message in a div with class 'toast-message'
+      const messageDiv = document.createElement('div');
+      messageDiv.className = 'toast-message';
+      messageDiv.textContent = message;
+      toast.appendChild(messageDiv);
       if (type === 'critical') {
         const closeBtn = document.createElement('button');
-        closeBtn.textContent = '✕';
+        closeBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12.8535 12.1462C12.9 12.1927 12.9368 12.2478 12.962 12.3085C12.9871 12.3692 13.0001 12.4343 13.0001 12.5C13.0001 12.5657 12.9871 12.6307 12.962 12.6914C12.9368 12.7521 12.9 12.8073 12.8535 12.8537C12.8071 12.9002 12.7519 12.937 12.6912 12.9622C12.6305 12.9873 12.5655 13.0003 12.4998 13.0003C12.4341 13.0003 12.369 12.9873 12.3083 12.9622C12.2476 12.937 12.1925 12.9002 12.146 12.8537L7.99979 8.70685L3.85354 12.8537C3.75972 12.9475 3.63247 13.0003 3.49979 13.0003C3.36711 13.0003 3.23986 12.9475 3.14604 12.8537C3.05222 12.7599 2.99951 12.6327 2.99951 12.5C2.99951 12.3673 3.05222 12.24 3.14604 12.1462L7.29291 7.99997L3.14604 3.85372C3.05222 3.7599 2.99951 3.63265 2.99951 3.49997C2.99951 3.36729 3.05222 3.24004 3.14604 3.14622C3.23986 3.0524 3.36711 2.99969 3.49979 2.99969C3.63247 2.99969 3.75972 3.0524 3.85354 3.14622L7.99979 7.2931L12.146 3.14622C12.2399 3.0524 12.3671 2.99969 12.4998 2.99969C12.6325 2.99969 12.7597 3.0524 12.8535 3.14622C12.9474 3.24004 13.0001 3.36729 13.0001 3.49997C13.0001 3.63265 12.9474 3.7599 12.8535 3.85372L8.70666 7.99997L12.8535 12.1462Z" fill="inherit"/></svg>';
         closeBtn.className = 'toast-close-btn';
         closeBtn.addEventListener('click', () => {
           toast.remove();
@@ -627,11 +587,9 @@
         toast.appendChild(closeBtn);
       }
       toastContainer.appendChild(toast);
-      // Animate in
       setTimeout(() => {
         toast.classList.add('show');
       }, 10);
-      // Remove after 3s if not critical
       if (type !== 'critical') {
         setTimeout(() => {
           toast.classList.remove('show');
@@ -641,15 +599,44 @@
         }, 3000);
       }
     }
-    // Listen for show-toast messages from plugin and display toast
-    window.addEventListener('message', (event) => {
-      if (event.data.pluginMessage && event.data.pluginMessage.type === 'show-toast') {
-        showToast(event.data.pluginMessage.message, event.data.pluginMessage.toastType);
-      }
-      if (event.data.pluginMessage && event.data.pluginMessage.type === 'chat-complete') {
-        setLoading(false);
-      }
-    });
+
+    // =========================
+    //   PLUGIN MESSAGE EVENTS
+    // =========================
+    function addPluginMessageListeners() {
+      window.addEventListener('message', (event) => {
+        const msg = event.data.pluginMessage;
+        if (!msg) return;
+        if (msg.type === 'selection-update') {
+          selectedTextCount = msg.count;
+          updateApiKeyStatus();
+          updateSendButton();
+        }
+        if (msg.type === 'api-key-loaded') {
+          const savedApiKey = msg.apiKey;
+          currentApiKey = savedApiKey || '';
+          apiKeyInput.value = savedApiKey || '';
+          updateApiKeyInputStatus(savedApiKey);
+          updateApiKeyStatus();
+          updateChatInputState();
+        }
+        if (msg.type === 'show-toast') {
+          showToast(msg.message, msg.toastType);
+        }
+        if (msg.type === 'chat-complete') {
+          setLoading(false);
+        }
+      });
+    }
+
+    // =========================
+    //   ADD ALL EVENT LISTENERS
+    // =========================
+    function addEventListeners() {
+      addChatInputListeners();
+      addApiKeyModalListeners();
+      addPluginMessageListeners();
+    }
   </script>
 </body>
 </html> 
