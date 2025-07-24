@@ -13,68 +13,31 @@ An AI-powered ghostwriter plugin for Figma that generates text content using Ope
 - ✅ **Precise Array Matching** - AI always generates a plain JSON array with at least as many items as you need
 - ✅ **Strict JSON Output** - All AI responses are plain, unwrapped JSON arrays (never objects, never wrapped, never with keys)
 - ✅ **Secure API Key Storage** - API keys stored locally in Figma's client storage
-- ✅ **Configurable AI Settings** - Adjust model, temperature, and token limits
 - ✅ **Position-Aware Replacement** - Maintains visual layout when replacing multiple elements
 - ✅ **TypeScript Support** - Type safety with Figma plugin typings
 - ✅ **Clean, Modern UI** - Simple interface with organized settings
 
-## Setup
+---
 
-1. Install dependencies:
-   ```bash
-   npm install
-   ```
+## How to Use This Plugin (for Figma Users)
 
-2. Build the plugin:
-   ```bash
-   npm run build
-   ```
+1. **Install Mentarii** from the Figma Community.
+2. **Open your Figma file** and run the plugin from the Plugins menu.
+3. **Set your OpenAI API key**:
+   - Click the settings icon in the plugin window.
+   - Paste your OpenAI API key (starts with `sk-`). The key is securely stored and auto-saved.
+4. **Select one or more text elements** on your canvas that you want to update.
+5. **Type your prompt** (e.g., "Generate 5 creative headlines") in the chat box.
+6. **Click Send** (or press Enter). The plugin will replace the content of each selected text element with AI-generated results.
+7. **Review your updated text**—each selected element is updated in place, preserving your layout.
 
-3. Get your OpenAI API key:
-   - Go to [OpenAI Platform](https://platform.openai.com/api-keys)
-   - Create a new API key
-   - Copy the key (starts with `sk-`)
+> **Tip:** For best results, ask for a list or multiple items in your prompt. The plugin always generates a flat array of results matching your selection.
 
-4. In Figma:
-   - Go to Plugins → Development → "Import plugin from manifest..."
-   - Select the `manifest.json` file
-   - Run the plugin
-   - Click "Settings" to expand the configuration
-   - Paste your OpenAI API key
-   - The key is stored securely in Figma's client storage
-
-## Usage
-
-### Basic Text Generation
-1. **Set up your API key** in the Settings section
-2. **Configure AI settings** (model, temperature, max tokens)
-3. **Type your prompt** in the chat input
-4. **Click Send** or press Enter
-5. **AI response** will be added as a new text element in your Figma canvas
-
-### Smart Text Replacement
-1. **Select existing text elements** on your canvas
-2. **Ask for a list or multiple items** (e.g., "a list of dates in descending order")
-3. **AI generates a plain JSON array** with at least as many items as your selection
-4. **Each selected text element** gets replaced with a corresponding item
-5. **Order is preserved** based on the position of your selected elements
+---
 
 ## AI Configuration
 
-### Models
-- **GPT-3.5 Turbo**: Fast and cost-effective for most tasks
-- **GPT-4**: More capable but slower and more expensive
-- **GPT-4 Turbo**: Latest model with improved performance
-
-### Temperature
-- **0.0**: Very focused, consistent responses
-- **0.7**: Balanced creativity (default)
-- **1.0+**: More creative and varied responses
-
-### Max Tokens
-- **1000**: Good for most responses (default)
-- **2000+**: For longer, more detailed responses
-- **4000**: Maximum allowed
+> **Note:** The AI model, temperature, and token settings are currently fixed in the code and are not user-configurable from the UI. (Defaults: `gpt-3.5-turbo`, temperature 0.7, max tokens 1000.)
 
 ## Smart Features
 
@@ -109,12 +72,14 @@ An AI-powered ghostwriter plugin for Figma that generates text content using Ope
 ## File Structure
 
 ```
-├── code.ts                  # Main plugin code (bundled)
+├── code.ts                  # Main plugin code (TypeScript)
 ├── ui.html                  # Plugin UI with chat interface and settings
 ├── manifest.json            # Plugin manifest
-├── dist/code.js             # Compiled JavaScript
-└── package.json             # Dependencies and scripts
+├── package.json             # Dependencies and scripts
+└── dist/code.js             # Compiled JavaScript (created after build)
 ```
+
+> **Note:** The `dist/code.js` file is generated after running the build script and may not be present until you build the project.
 
 ## API Integration Details
 
