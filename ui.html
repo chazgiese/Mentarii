@@ -423,9 +423,6 @@
     function isApiKeyValid(key) {
       return key.startsWith('sk-') && key.length > 20;
     }
-    function validateApiKey(key) {
-      return key.startsWith('sk-') && key.length > 20;
-    }
     function updateApiKeyStatus() {
       if (!isApiKeyValid(currentApiKey)) {
         apiKeyStatus.textContent = 'Set API key';
@@ -465,7 +462,7 @@
         apiKeyStatusModal.textContent = '';
         return;
       }
-      if (validateApiKey(key)) {
+      if (isApiKeyValid(key)) {
         apiKeyStatusModal.className = 'api-key-input-status valid';
         apiKeyStatusModal.textContent = '✓';
       } else {
@@ -534,7 +531,7 @@
         const key = e.target.value;
         updateApiKeyInputStatus(key);
         clearTimeout(apiKeyInputSaveTimeout);
-        if (validateApiKey(key)) {
+        if (isApiKeyValid(key)) {
           currentApiKey = key; // Update currentApiKey before updating status
           updateApiKeyStatus(); // Hide apiKeyStatus immediately when valid key is entered
         } else if (key === '') {
@@ -544,7 +541,7 @@
         apiKeyInputSaveTimeout = setTimeout(() => {
           if (key === '') {
             parent.postMessage({ pluginMessage: { type: 'save-api-key', apiKey: '' } }, '*');
-          } else if (validateApiKey(key)) {
+          } else if (isApiKeyValid(key)) {
             parent.postMessage({ pluginMessage: { type: 'save-api-key', apiKey: key } }, '*');
           }
         }, 500);
