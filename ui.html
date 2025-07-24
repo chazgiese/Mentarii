@@ -12,12 +12,12 @@
       box-sizing: border-box;
     }
     body {
-      font-family: Inter, sans-serif;
-      margin: 0;
-      padding: 20px;
       background-color: var(--figma-color-bg);
       color: var(--figma-color-text);
+      font-family: Inter, sans-serif;
+      margin: 0;
       overflow-y: auto;
+      padding: 20px;
     }
     
     /* Chat section container */
@@ -29,25 +29,24 @@
     .chat-input-container {
       display: flex;
       position: relative;
-      box-sizing: border-box;
     }
     
     /* Editable chat input area */
     .chat-input {
       background-color: var(--figma-color-bg-secondary);
-      flex: 1;
-      padding: 12px 16px 56px;
       border-radius: 16px;
       box-sizing: border-box;
-      font-size: 13px;
+      flex: 1;
       font-family: Inter, sans-serif;
+      font-size: 13px;
       font-weight: 400;
       height: 148px;
-      min-height: 148px;
       line-height: 20px;
+      min-height: 148px;
       overflow-y: auto;
-      word-wrap: break-word;
+      padding: 12px 16px 56px;
       white-space: pre-wrap;
+      word-wrap: break-word;
       outline: none;
     }
     .chat-input:focus {
@@ -55,87 +54,88 @@
     }
     /* Placeholder styling for empty chat input */
     .chat-input[data-placeholder]:empty:before {
-      content: attr(data-placeholder);
       color: var(--figma-color-text-disabled);
+      content: attr(data-placeholder);
       pointer-events: none;
     }
 
     .api-key-status {
+      color: var(--figma-color-text-secondary);
       font-size: 11px;
       letter-spacing: 1%;
       padding-right: 4px;
-      color: var(--figma-color-text-secondary);
     }
 
     /* Chat button (API key icon) styling */
     .chat-button {
-      display: flex;
       align-items: center;
-      justify-content: center;
       background: none;
       border: none;
       border-radius: 16px;
+      bottom: 8px;
+      cursor: pointer;
+      display: flex;
+      gap: 8px;
+      height: 32px;
+      justify-content: center;
+      left: 8px;
+      min-width: 32px;
       padding: 8px;
       position: absolute;
-      height: 32px;
-      min-width: 32px;
-      bottom: 8px;
-      left: 8px;
-      gap: 8px;
-      cursor: pointer;
     }
     .chat-button:hover {
       background: var(--figma-color-bg-tertiary);
     }
     .chat-button svg {
-      width: 16px;
-      height: 16px;
       display: block;
       fill: var(--figma-color-text);
+      height: 16px;
+      width: 16px;
     }
 
     /* Send button styling */
     .send-button {
-      width: 32px;
-      height: 32px;
-      min-width: 32px;
-      min-height: 32px;
-      max-width: 32px;
-      max-height: 32px;
-      padding: 0;
+      align-items: center;
       background: var(--figma-color-bg-brand);
-      color: var(--figma-color-text-on-brand);
       border: none;
       border-radius: 16px;
+      color: var(--figma-color-text-on-brand);
+      cursor: pointer;
       display: flex;
-      align-items: center;
-      justify-content: center;
       font-size: 18px;
       font-weight: 500;
-      cursor: pointer;
-      transition: background 0.2s;
+      height: 32px;
+      justify-content: center;
+      left: auto;
+      max-height: 32px;
+      max-width: 32px;
+      min-height: 32px;
+      min-width: 32px;
+      padding: 0;
       position: absolute;
       right: 8px;
+      transition: background 0.2s;
+      width: 32px;
       bottom: 8px;
     }
     .send-button svg {
-      width: 16px;
-      height: 16px;
       display: block;
       fill: var(--figma-color-icon-onbrand);
+      height: 16px;
+      width: 16px;
     }
     .send-button.loading {
       cursor: not-allowed;
     }
     .send-button.loading::after {
+      animation: spin 1s linear infinite;
+      border: 2px solid transparent;
+      border-radius: 50%;
+      border-top: 2px solid var(--figma-color-icon-onbrand);
       content: '';
       display: inline-block;
-      width: 12px;
       height: 12px;
-      border: 2px solid transparent;
-      border-top: 2px solid var(--figma-color-icon-onbrand);
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
+      width: 12px;
     }
     .send-button:disabled {
       background: var(--figma-color-bg-disabled);
@@ -150,49 +150,49 @@
     
     /* Modal for entering API key */
     .api-key-modal {
+      align-items: center;
+      background: rgba(0,0,0,0.4);
       display: none;
+      height: 100vh;
+      justify-content: center;
+      left: 0;
       position: fixed;
       top: 0;
-      left: 0;
       width: 100vw;
-      height: 100vh;
-      background: rgba(0,0,0,0.4);
       z-index: 1000;
-      align-items: center;
-      justify-content: center;
     }
     .api-key-modal-content {
       background: var(--figma-color-bg);
-      padding: 0px;
       border-radius: 12px;
       box-shadow: 0 2px 16px rgba(0,0,0,0.15);
       min-width: 320px;
+      padding: 0px;
       position: relative;
     }
     .api-key-modal-header {
-      display: flex;
-      justify-content: space-between;
       align-items: center;
-      padding: 0px 20px;
       border-bottom: 1px solid var(--figma-color-border);
-      height: 40px;
+      display: flex;
       font-size: 11px;
+      height: 40px;
+      justify-content: space-between;
       letter-spacing: 1%;
+      padding: 0px 20px;
     }
     .close-modal {
-      position: absolute;
-      top: 8px;
-      right: 8px;
-      background: none;
-      display: flex;
       align-items: center;
-      justify-content: center;
-      height: 24px;
-      width: 24px;
+      background: none;
       border: none;
       border-radius: 4px;
       cursor: auto;
+      display: flex;
+      height: 24px;
+      justify-content: center;
       padding: 0px;
+      position: absolute;
+      right: 8px;
+      top: 8px;
+      width: 24px;
     }
     .close-modal svg {
       fill: var(--figma-color-icon);
@@ -205,34 +205,35 @@
       position: relative;
     }
     .api-key-input {
-      width: 100%;
       background-color: var(--figma-color-bg-secondary);
-      padding: 8px 32px 8px 8px;
       border: none;
       border-radius: 6px;
-      font-size: 13px;
-      line-height: 20px;
-      font-family: monospace;
       box-sizing: border-box;
       color: var(--figma-color-text);
+      font-family: monospace;
+      font-size: 13px;
+      line-height: 20px;
+      padding: 8px 32px 8px 8px;
+      width: 100%;
     }
     .api-key-input:focus {
-      outline: none;
       border-color: none;
       box-shadow: none;
+      outline: none;
     }
     .api-key-input-status {
-      font-size: 12px;
-      padding: 0px;
-      border-radius: 4px;
-      width: 16px;
-      height: 16px;
-      display: none;
       align-items: center;
-      justify-content: center;
+      border-radius: 4px;
       border-radius: 8px;
+      display: none;
+      display: none;
+      font-size: 12px;
+      height: 16px;
+      justify-content: center;
+      padding: 0px;
       position: absolute;
       top: 30px;
+      width: 16px;
       right: 28px;
     }
     .api-key-input-status.valid {
@@ -246,13 +247,13 @@
       display: flex;
     }
     .api-key-info {
+      color: var(--figma-color-text-disabled);
+      display: block;
       font-size: 11px;
       line-height: 16px;
-      padding: 0px;
-      color: var(--figma-color-text-disabled);
-      text-decoration: none;
-      display: block;
       margin-top: 8px;
+      padding: 0px;
+      text-decoration: none;
     }
     .api-key-info a {
       color: var(--figma-color-text-brand);
@@ -263,36 +264,38 @@
     }
     /* Toast styles */
     .toast-container {
-      position: fixed;
-      left: 0;
-      right: 0;
       bottom: 16px;
-      padding: 0 32px 0;
       display: flex;
       justify-content: center;
-      z-index: 9999;
+      left: 0;
+      padding: 0 32px 0;
       pointer-events: none;
+      position: fixed;
+      right: 0;
+      z-index: 9999;
     }
     .toast {
-      box-sizing: border-box;
-      display: flex;
       align-items: center;
-      justify-content: center;
-      height: 40px;
-      max-height: 40px;
-      max-width: 100%;
+      background: none;
       border-radius: 12px;
       box-shadow: 0px 3px 8px rgba(0, 0, 0, .35), 0px 1px 3px rgba(0, 0, 0, .5), inset 0px .5px 0px rgba(255, 255, 255, .08), inset 0px 0px .5px rgba(255, 255, 255, .3);
+      box-sizing: border-box;
+      color: inherit;
+      display: flex;
       font-size: 11px;
-      line-height: 16px;
       font-weight: 500;
+      height: 40px;
+      justify-content: center;
+      line-height: 16px;
       margin: 0 auto;
-      transition: all 0.4s cubic-bezier(.4,0,.2,1);
-      pointer-events: auto;
+      max-height: 40px;
+      max-width: 100%;
       opacity: 0;
-      transform: translateY(100px);
-      position: relative;
       overflow: hidden;
+      pointer-events: auto;
+      position: relative;
+      transition: all 0.4s cubic-bezier(.4,0,.2,1);
+      transform: translateY(100px);
       z-index: 10000;
     }
     .toast-success {
@@ -314,12 +317,12 @@
     .toast-close-btn {
       align-self: stretch;
       background: transparent;
-      color: var(--figma-color-text-ondanger);
       border: none;
       border-left: 1px solid var(--figma-color-border-ondanger);
+      color: var(--figma-color-text-ondanger);
       cursor: pointer;
-      pointer-events: auto;
       padding: 12px;
+      pointer-events: auto;
     }
     .toast-close-btn svg {
       fill: var(--figma-color-text-ondanger);
@@ -328,10 +331,10 @@
       background: var(--figma-color-bg-danger-hover);
     }
     .toast-message {
-      white-space: nowrap;
       overflow: hidden;
-      text-overflow: ellipsis;
       padding: 8px 16px;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
   </style>
 </head>
