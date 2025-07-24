@@ -372,21 +372,45 @@
   <!--      JAVASCRIPT LOGIC     -->
   <!-- ========================= -->
   <script>
-    // --- Chat functionality and state ---
-    const chatInput = document.getElementById('chat-input');
-    const sendButton = document.getElementById('send-button');
-    // Removed responseArea (no longer used)
-    
-    // Track selection count for UI feedback
-    let selectedTextCount = 0;
-    const apiKeyStatus = document.getElementById('api-key-status');
-    let currentApiKey = '';
+    // =========================
+    //   DOMContentLoaded/init
+    // =========================
+    document.addEventListener('DOMContentLoaded', () => {
+      selectDomElements();
+      updateChatInputState();
+      parent.postMessage({ pluginMessage: { type: 'get-api-key' } }, '*');
+      autoResize();
+      addEventListeners();
+    });
 
+    // =========================
+    //   DOM ELEMENT SELECTION
+    // =========================
+    let chatInput, sendButton, apiKeyStatus, keyIcon, apiKeyModal, apiKeyInput, apiKeyStatusModal, closeModal;
+    let selectedTextCount = 0;
+    let currentApiKey = '';
+    let apiKeyInputSaveTimeout;
+
+    function selectDomElements() {
+      chatInput = document.getElementById('chat-input');
+      sendButton = document.getElementById('send-button');
+      apiKeyStatus = document.getElementById('api-key-status');
+      keyIcon = document.getElementById('key-icon');
+      apiKeyModal = document.getElementById('api-key-modal');
+      apiKeyInput = document.getElementById('api-key-input');
+      apiKeyStatusModal = document.getElementById('api-key-input-status');
+      closeModal = document.getElementById('close-modal');
+    }
+
+    // =========================
+    //     UTILITY FUNCTIONS
+    // =========================
     function isApiKeyValid(key) {
       return key && key.startsWith('sk-') && key.length > 20;
     }
-
-    // Updates the selection state display (e.g., '2 selected', 'add api key')
+    function validateApiKey(key) {
+      return key.startsWith('sk-') && key.length > 20;
+    }
     function updateApiKeyStatus() {
       if (!isApiKeyValid(currentApiKey)) {
         apiKeyStatus.textContent = 'Set API key';
@@ -395,18 +419,15 @@
           apiKeyModal.style.display = 'flex';
           parent.postMessage({ pluginMessage: { type: 'get-api-key' } }, '*');
         };
+        apiKeyStatus.style.display = '';
       } else {
         apiKeyStatus.style.display = 'none';
-      } 
+      }
     }
-
-    // Enable/disable send button based only on chat input content
     function updateSendButton() {
       const hasContent = chatInput.textContent.trim().length > 0;
       sendButton.disabled = !hasContent || sendButton.classList.contains('loading');
     }
-    
-    // --- Loading state for send button ---
     function setLoading(loading) {
       if (loading) {
         sendButton.classList.add('loading');
@@ -417,98 +438,12 @@
       }
       updateSendButton();
     }
-    
-    // --- Auto-resize chat input for multi-line prompts ---
     function autoResize() {
       chatInput.style.height = 'auto';
       const scrollHeight = chatInput.scrollHeight;
-      const maxHeight = 148; // matches CSS max-height
+      const maxHeight = 148;
       chatInput.style.height = Math.min(scrollHeight, maxHeight) + 'px';
     }
-    
-    // --- Event listeners for chat input and send button ---
-    chatInput.addEventListener('input', () => {
-      updateSendButton();
-      autoResize();
-    });
-    // Send message on button click
-    sendButton.addEventListener('click', () => {
-      const message = chatInput.textContent.trim();
-      // Check for valid API key first
-      if (!isApiKeyValid(currentApiKey)) {
-        showToast('no valid api key', 'error');
-        return;
-      }
-      // Then check for selection
-      if (selectedTextCount < 1) {
-        showToast('please select at least one text element to replace.', 'error');
-        return;
-      }
-      if (message && !sendButton.classList.contains('loading')) {
-        setLoading(true);
-        parent.postMessage({ 
-          pluginMessage: { 
-            type: 'send-chat-message',
-            message: message 
-          } 
-        }, '*');
-        chatInput.textContent = '';
-        updateSendButton();
-      }
-    });
-    // Allow Enter to send, Shift+Enter for newline
-    chatInput.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' && !e.shiftKey) {
-        e.preventDefault();
-        sendButton.click();
-      }
-    });
-    // Initialize the input height
-    autoResize();
-    
-    // --- Selection state updates from plugin ---
-    // Listen for selection updates from plugin
-    window.addEventListener('message', (event) => {
-      if (event.data.pluginMessage && event.data.pluginMessage.type === 'selection-update') {
-        selectedTextCount = event.data.pluginMessage.count;
-        updateApiKeyStatus();
-        updateSendButton();
-      }
-      // Handle API key loaded from plugin
-      if (event.data.pluginMessage && event.data.pluginMessage.type === 'api-key-loaded') {
-        const savedApiKey = event.data.pluginMessage.apiKey;
-        currentApiKey = savedApiKey || '';
-        apiKeyInput.value = savedApiKey || '';
-        updateApiKeyInputStatus(savedApiKey);
-        updateApiKeyStatus();
-      }
-    });
-
-    // --- API Key Modal logic ---
-    const keyIcon = document.getElementById('key-icon');
-    const apiKeyModal = document.getElementById('api-key-modal');
-    const apiKeyInput = document.getElementById('api-key-input');
-    const apiKeyStatusModal = document.getElementById('api-key-input-status');
-    const saveApiKeyModal = document.getElementById('save-api-key-modal');
-    const closeModal = document.getElementById('close-modal');
-
-    // Open modal and request saved API key
-    keyIcon.addEventListener('click', () => {
-      apiKeyModal.style.display = 'flex';
-      parent.postMessage({ pluginMessage: { type: 'get-api-key' } }, '*');
-    });
-    // Close modal on button or background click
-    closeModal.addEventListener('click', () => {
-      apiKeyModal.style.display = 'none';
-    });
-    apiKeyModal.addEventListener('click', (e) => {
-      if (e.target === apiKeyModal) apiKeyModal.style.display = 'none';
-    });
-    // Validate API key format (basic check)
-    function validateApiKey(key) {
-      return key.startsWith('sk-') && key.length > 20;
-    }
-    // Update status indicator in modal
     function updateApiKeyInputStatus(key) {
       if (!key) {
         apiKeyStatusModal.className = 'api-key-input-status';
@@ -523,49 +458,80 @@
         apiKeyStatusModal.textContent = '✗';
       }
     }
-    // Auto-save API key with debounce
-    let apiKeyInputSaveTimeout;
-    apiKeyInput.addEventListener('input', (e) => {
-      const key = e.target.value;
-      updateApiKeyInputStatus(key);
-      clearTimeout(apiKeyInputSaveTimeout);
-      apiKeyInputSaveTimeout = setTimeout(() => {
-        if (key === '') {
-          parent.postMessage({ pluginMessage: { type: 'save-api-key', apiKey: '' } }, '*');
-        } else if (validateApiKey(key)) {
-          parent.postMessage({ pluginMessage: { type: 'save-api-key', apiKey: key } }, '*');
-        }
-      }, 500);
-    });
-    // When receiving the saved API key, show it masked and update status
-    window.addEventListener('message', (event) => {
-      if (event.data.pluginMessage && event.data.pluginMessage.type === 'api-key-loaded') {
-        const savedApiKey = event.data.pluginMessage.apiKey;
-        apiKeyInput.value = savedApiKey || '';
-        updateApiKeyInputStatus(savedApiKey);
-      }
-    });
-    // On load, update chat input state
-    window.addEventListener('DOMContentLoaded', () => {
-      updateChatInputState();
-      // Always request the saved API key from the plugin on load
-      parent.postMessage({ pluginMessage: { type: 'get-api-key' } }, '*');
-    });
-    // Also update when API key is loaded from storage
-    window.addEventListener('message', (event) => {
-      if (event.data.pluginMessage && event.data.pluginMessage.type === 'api-key-loaded') {
-        const savedApiKey = event.data.pluginMessage.apiKey;
-        apiKeyInput.value = savedApiKey || '';
-        updateApiKeyInputStatus(savedApiKey);
-        updateChatInputState();
-      }
-    });
+    function updateChatInputState() {
+      updateSendButton();
+      autoResize();
+    }
 
-    // --- Toast notification logic ---
-    /**
-     * Shows a toast notification (success, error, or critical) at the bottom of the UI.
-     * Critical toasts require manual dismissal; others auto-dismiss after 3s.
-     */
+    // =========================
+    //     CHAT INPUT LOGIC
+    // =========================
+    function addChatInputListeners() {
+      chatInput.addEventListener('input', () => {
+        updateSendButton();
+        autoResize();
+      });
+      sendButton.addEventListener('click', () => {
+        const message = chatInput.textContent.trim();
+        if (!isApiKeyValid(currentApiKey)) {
+          showToast('no valid api key', 'error');
+          return;
+        }
+        if (selectedTextCount < 1) {
+          showToast('please select at least one text element to replace.', 'error');
+          return;
+        }
+        if (message && !sendButton.classList.contains('loading')) {
+          setLoading(true);
+          parent.postMessage({ 
+            pluginMessage: { 
+              type: 'send-chat-message',
+              message: message 
+            } 
+          }, '*');
+          chatInput.textContent = '';
+          updateSendButton();
+        }
+      });
+      chatInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+          e.preventDefault();
+          sendButton.click();
+        }
+      });
+    }
+
+    // =========================
+    //    API KEY MODAL LOGIC
+    // =========================
+    function addApiKeyModalListeners() {
+      keyIcon.addEventListener('click', () => {
+        apiKeyModal.style.display = 'flex';
+        parent.postMessage({ pluginMessage: { type: 'get-api-key' } }, '*');
+      });
+      closeModal.addEventListener('click', () => {
+        apiKeyModal.style.display = 'none';
+      });
+      apiKeyModal.addEventListener('click', (e) => {
+        if (e.target === apiKeyModal) apiKeyModal.style.display = 'none';
+      });
+      apiKeyInput.addEventListener('input', (e) => {
+        const key = e.target.value;
+        updateApiKeyInputStatus(key);
+        clearTimeout(apiKeyInputSaveTimeout);
+        apiKeyInputSaveTimeout = setTimeout(() => {
+          if (key === '') {
+            parent.postMessage({ pluginMessage: { type: 'save-api-key', apiKey: '' } }, '*');
+          } else if (validateApiKey(key)) {
+            parent.postMessage({ pluginMessage: { type: 'save-api-key', apiKey: key } }, '*');
+          }
+        }, 500);
+      });
+    }
+
+    // =========================
+    //   TOAST NOTIFICATION LOGIC
+    // =========================
     function showToast(message, type = 'success') {
       const toastContainer = document.getElementById('toast-container');
       const toast = document.createElement('div');
@@ -578,7 +544,6 @@
         toast.classList.add('toast-success');
       }
       toast.textContent = message;
-      // Add close button for critical toasts
       if (type === 'critical') {
         const closeBtn = document.createElement('button');
         closeBtn.textContent = '✕';
@@ -589,11 +554,9 @@
         toast.appendChild(closeBtn);
       }
       toastContainer.appendChild(toast);
-      // Animate in
       setTimeout(() => {
         toast.classList.add('show');
       }, 10);
-      // Remove after 3s if not critical
       if (type !== 'critical') {
         setTimeout(() => {
           toast.classList.remove('show');
@@ -603,15 +566,44 @@
         }, 3000);
       }
     }
-    // Listen for show-toast messages from plugin and display toast
-    window.addEventListener('message', (event) => {
-      if (event.data.pluginMessage && event.data.pluginMessage.type === 'show-toast') {
-        showToast(event.data.pluginMessage.message, event.data.pluginMessage.toastType);
-      }
-      if (event.data.pluginMessage && event.data.pluginMessage.type === 'chat-complete') {
-        setLoading(false);
-      }
-    });
+
+    // =========================
+    //   PLUGIN MESSAGE EVENTS
+    // =========================
+    function addPluginMessageListeners() {
+      window.addEventListener('message', (event) => {
+        const msg = event.data.pluginMessage;
+        if (!msg) return;
+        if (msg.type === 'selection-update') {
+          selectedTextCount = msg.count;
+          updateApiKeyStatus();
+          updateSendButton();
+        }
+        if (msg.type === 'api-key-loaded') {
+          const savedApiKey = msg.apiKey;
+          currentApiKey = savedApiKey || '';
+          apiKeyInput.value = savedApiKey || '';
+          updateApiKeyInputStatus(savedApiKey);
+          updateApiKeyStatus();
+          updateChatInputState();
+        }
+        if (msg.type === 'show-toast') {
+          showToast(msg.message, msg.toastType);
+        }
+        if (msg.type === 'chat-complete') {
+          setLoading(false);
+        }
+      });
+    }
+
+    // =========================
+    //   ADD ALL EVENT LISTENERS
+    // =========================
+    function addEventListeners() {
+      addChatInputListeners();
+      addApiKeyModalListeners();
+      addPluginMessageListeners();
+    }
   </script>
 </body>
 </html> 
