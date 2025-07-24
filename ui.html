@@ -259,14 +259,32 @@
       text-decoration: underline;
     }
     /* Toast styles */
+    .toast-container {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 16px;
+      padding: 0 32px 0;
+      display: flex;
+      justify-content: center;
+      z-index: 9999;
+      pointer-events: none;
+    }
     .toast {
-      max-width: 200px;
-      padding: 14px 28px;
+      box-sizing: border-box;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 40px;
+      max-height: 40px;
+      max-width: 100%;
+      padding: 8px 16px;
       border-radius: 12px;
-      box-shadow: 0 2px 16px rgba(0,0,0,0.15);
-      font-size: 15px;
+      box-shadow: 0px 3px 8px rgba(0, 0, 0, .35), 0px 1px 3px rgba(0, 0, 0, .5), inset 0px .5px 0px rgba(255, 255, 255, .08), inset 0px 0px .5px rgba(255, 255, 255, .3);
+      font-size: 11px;
+      line-height: 16px;
+      font-weight: 500;
       margin: 0 auto;
-      font-weight: bold;
       transition: all 0.4s cubic-bezier(.4,0,.2,1);
       pointer-events: auto;
       opacity: 0;
@@ -275,17 +293,16 @@
       z-index: 10000;
     }
     .toast-success {
-      background: #23272f;
-      color: #fff;
+      background: #2C2C2C;
+      color: #FFFFFF;
     }
     .toast-error {
-      background: #ffeaea;
-      color: #b00020;
+      background: #2C2C2C;
+      color: #FFFFFF;
     }
     .toast-critical {
-      background: #b00020;
-      color: #fff;
-      border: 2px solid #fff;
+      background: var(--figma-color-bg-danger);
+      color: var(--figma-color-text-ondanger);
     }
     .toast.show {
       opacity: 1;
@@ -318,7 +335,6 @@
   <div class="container">
     
     <div class="chat-section">
-      
       <!-- Chat selection state display (shows how many text elements are selected) -->
       <div class="chat-input-container">
         <!-- Main chat input area (contenteditable for multi-line prompts) -->
@@ -338,7 +354,6 @@
         </button>
       </div>
       
-      <!-- Removed response-area div -->
     </div>
 
     <!-- API Key Modal for entering and validating OpenAI API key -->
@@ -366,7 +381,7 @@
   </div>
 
   <!-- Toast notification container (for success, error, and critical messages) -->
-  <div id="toast-container" style="position: fixed; left: 0; right: 0; bottom: 24px; display: flex; justify-content: center; z-index: 9999; pointer-events: none;"></div>
+  <div class="toast-container" id="toast-container" style=""></div>
 
   <!-- ========================= -->
   <!--      JAVASCRIPT LOGIC     -->
@@ -474,11 +489,11 @@
       sendButton.addEventListener('click', () => {
         const message = chatInput.textContent.trim();
         if (!isApiKeyValid(currentApiKey)) {
-          showToast('no valid api key', 'error');
+          showToast('Missing valid API key', 'critical');
           return;
         }
         if (selectedTextCount < 1) {
-          showToast('please select at least one text element to replace.', 'error');
+          showToast('Select at least one text element to replace.', 'error');
           return;
         }
         if (message && !sendButton.classList.contains('loading')) {

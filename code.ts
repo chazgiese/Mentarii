@@ -495,7 +495,7 @@ async function handleSendChatMessage(msg: any): Promise<void> {
   } catch (error) {
     // User-facing error handling and messaging happens here.
     console.error('Error processing chat message:', error);
-    let userMessage = "An unexpected error occurred. Please try again.";
+    let userMessage = "Unexpected error. Please try again.";
     if (error instanceof Error) {
       if (error.message.includes("Incorrect API key provided")) {
         userMessage = "Your OpenAI API key is incorrect. Please check your key and try again. You can find your API key at https://platform.openai.com/account/api-keys.";
