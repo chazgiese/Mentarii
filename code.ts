@@ -167,16 +167,16 @@ async function callChatGPT(
           // Check for OpenAI error subcodes
           const code = errorData.error?.code;
           if (code === 'rate_limit_exceeded') {
-            errorMessage = 'You’ve exceeded the rate limit for your organization or key.';
+            errorMessage = 'Rate limit exceeded';
           } else if (code === 'tokens_exceeded') {
-            errorMessage = 'Too many tokens sent in a short time period. Please wait and try again.';
+            errorMessage = 'Too many tokens sent in a short time period';
           } else if (code === 'requests_exceeded') {
-            errorMessage = 'Too many requests per minute/hour/day. Please slow down and try again later.';
+            errorMessage = 'Too many requests per minute/hour/day';
           } else if (code === 'context_length_exceeded') {
-            errorMessage = 'Your prompt plus response would exceed the model’s context window. Please shorten your input.';
+            errorMessage = 'Please shorten your input';
           } else {
             // fallback to generic quota message if no subcode
-            errorMessage = 'You have exceeded your OpenAI API quota. Please check your usage and billing at https://platform.openai.com/account/usage.';
+            errorMessage = 'OpenAI API quota exceeded';
           }
         } else if (!errorData.error?.message) {
           errorMessage = response.statusText;
