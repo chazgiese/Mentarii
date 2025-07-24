@@ -355,7 +355,7 @@
           <input 
           type="password" 
           class="api-key-input" 
-          id="api-key-input-modal" 
+          id="api-key-input" 
           placeholder="sk-..."
           autocomplete="off"
           />
@@ -487,7 +487,7 @@
       if (event.data.pluginMessage && event.data.pluginMessage.type === 'api-key-loaded') {
         const savedApiKey = event.data.pluginMessage.apiKey;
         currentApiKey = savedApiKey || '';
-        apiKeyInputModal.value = savedApiKey || '';
+        apiKeyInput.value = savedApiKey || '';
         updateApiKeyStatusModal(savedApiKey);
         updateSelectionState();
       }
@@ -496,7 +496,7 @@
     // --- API Key Modal logic ---
     const keyIcon = document.getElementById('key-icon');
     const apiKeyModal = document.getElementById('api-key-modal');
-    const apiKeyInputModal = document.getElementById('api-key-input-modal');
+    const apiKeyInput = document.getElementById('api-key-input');
     const apiKeyStatusModal = document.getElementById('api-key-status-modal');
     const saveApiKeyModal = document.getElementById('save-api-key-modal');
     const closeModal = document.getElementById('close-modal');
@@ -533,12 +533,12 @@
       }
     }
     // Auto-save API key with debounce
-    let apiKeyInputModalSaveTimeout;
-    apiKeyInputModal.addEventListener('input', (e) => {
+    let apiKeyInputSaveTimeout;
+    apiKeyInput.addEventListener('input', (e) => {
       const key = e.target.value;
       updateApiKeyStatusModal(key);
-      clearTimeout(apiKeyInputModalSaveTimeout);
-      apiKeyInputModalSaveTimeout = setTimeout(() => {
+      clearTimeout(apiKeyInputSaveTimeout);
+      apiKeyInputSaveTimeout = setTimeout(() => {
         if (key === '') {
           parent.postMessage({ pluginMessage: { type: 'save-api-key', apiKey: '' } }, '*');
         } else if (validateApiKey(key)) {
@@ -550,38 +550,9 @@
     window.addEventListener('message', (event) => {
       if (event.data.pluginMessage && event.data.pluginMessage.type === 'api-key-loaded') {
         const savedApiKey = event.data.pluginMessage.apiKey;
-        apiKeyInputModal.value = savedApiKey || '';
+        apiKeyInput.value = savedApiKey || '';
         updateApiKeyStatusModal(savedApiKey);
       }
-    });
-
-    // --- Chat input state based on API key validity ---
-    function isApiKeyValid(key) {
-      return key && key.startsWith('sk-') && key.length > 20;
-    }
-    // Disable chat input and show warning if API key is missing/invalid
-    function updateChatInputState() {
-      const key = apiKeyInputModal.value;
-      const chatInput = document.querySelector('.chat-input');
-      if (!isApiKeyValid(key)) {
-        chatInput.disabled = true;
-        chatInput.placeholder = 'Enter a valid OpenAI API key in Settings (🔑) to use the plugin.';
-      } else {
-        chatInput.disabled = false;
-        chatInput.placeholder = 'Type your prompt here...';
-      }
-    }
-    apiKeyInputModal.addEventListener('input', (e) => {
-      const key = e.target.value;
-      updateApiKeyStatusModal(key);
-      clearTimeout(apiKeyInputModalSaveTimeout);
-      apiKeyInputModalSaveTimeout = setTimeout(() => {
-        if (key === '') {
-          parent.postMessage({ pluginMessage: { type: 'save-api-key', apiKey: '' } }, '*');
-        } else if (validateApiKey(key)) {
-          parent.postMessage({ pluginMessage: { type: 'save-api-key', apiKey: key } }, '*');
-        }
-      }, 500);
     });
     // On load, update chat input state
     window.addEventListener('DOMContentLoaded', () => {
@@ -593,7 +564,7 @@
     window.addEventListener('message', (event) => {
       if (event.data.pluginMessage && event.data.pluginMessage.type === 'api-key-loaded') {
         const savedApiKey = event.data.pluginMessage.apiKey;
-        apiKeyInputModal.value = savedApiKey || '';
+        apiKeyInput.value = savedApiKey || '';
         updateApiKeyStatusModal(savedApiKey);
         updateChatInputState();
       }
