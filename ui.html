@@ -57,7 +57,7 @@
       pointer-events: none;
     }
 
-    .selection-state {
+    .api-key-status {
       font-size: 11px;
       letter-spacing: 1%;
       padding-right: 4px;
@@ -219,7 +219,7 @@
       border-color: none;
       box-shadow: none;
     }
-    .api-key-status {
+    .api-key-input-status {
       font-size: 12px;
       padding: 0px;
       border-radius: 4px;
@@ -233,12 +233,12 @@
       top: 30px;
       right: 28px;
     }
-    .api-key-status.valid {
+    .api-key-input-status.valid {
       background: var(--figma-color-bg-success);
       color: var(--figma-color-icon-oninverse);
       display: flex;
     }
-    .api-key-status.invalid {
+    .api-key-input-status.invalid {
       background: var(--figma-color-bg-danger);
       color: var(--figma-color-icon-oninverse);
       display: flex;
@@ -331,7 +331,7 @@
         ></div>
         <!-- API key icon button (opens modal) -->
         <button class="chat-button" id="key-icon" title="Set API Key">
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M2.5 5.49998H4.5625C4.67265 5.93019 4.92285 6.3115 5.27365 6.5838C5.62446 6.85611 6.05591 7.00391 6.5 7.00391C6.94409 7.00391 7.37554 6.85611 7.72635 6.5838C8.07715 6.3115 8.32735 5.93019 8.4375 5.49998H13.5C13.6326 5.49998 13.7598 5.44731 13.8536 5.35354C13.9473 5.25977 14 5.13259 14 4.99998C14 4.86738 13.9473 4.7402 13.8536 4.64643C13.7598 4.55266 13.6326 4.49998 13.5 4.49998H8.4375C8.32735 4.06978 8.07715 3.68847 7.72635 3.41617C7.37554 3.14386 6.94409 2.99606 6.5 2.99606C6.05591 2.99606 5.62446 3.14386 5.27365 3.41617C4.92285 3.68847 4.67265 4.06978 4.5625 4.49998H2.5C2.36739 4.49998 2.24021 4.55266 2.14645 4.64643C2.05268 4.7402 2 4.86738 2 4.99998C2 5.13259 2.05268 5.25977 2.14645 5.35354C2.24021 5.44731 2.36739 5.49998 2.5 5.49998ZM6.5 3.99998C6.69778 3.99998 6.89112 4.05863 7.05557 4.16852C7.22002 4.2784 7.34819 4.43458 7.42388 4.6173C7.49957 4.80003 7.51937 5.00109 7.48079 5.19508C7.4422 5.38906 7.34696 5.56724 7.20711 5.70709C7.06725 5.84694 6.88907 5.94219 6.69509 5.98077C6.50111 6.01936 6.30004 5.99955 6.11732 5.92386C5.93459 5.84818 5.77841 5.72 5.66853 5.55556C5.55865 5.39111 5.5 5.19777 5.5 4.99998C5.5 4.73477 5.60536 4.48041 5.79289 4.29288C5.98043 4.10534 6.23478 3.99998 6.5 3.99998ZM13.5 10.5H12.4375C12.3273 10.0698 12.0771 9.68847 11.7263 9.41617C11.3755 9.14386 10.9441 8.99606 10.5 8.99606C10.0559 8.99606 9.62446 9.14386 9.27365 9.41617C8.92285 9.68847 8.67265 10.0698 8.5625 10.5H2.5C2.36739 10.5 2.24021 10.5527 2.14645 10.6464C2.05268 10.7402 2 10.8674 2 11C2 11.1326 2.05268 11.2598 2.14645 11.3535C2.24021 11.4473 2.36739 11.5 2.5 11.5H8.5625C8.67265 11.9302 8.92285 12.3115 9.27365 12.5838C9.62446 12.8561 10.0559 13.0039 10.5 13.0039C10.9441 13.0039 11.3755 12.8561 11.7263 12.5838C12.0771 12.3115 12.3273 11.9302 12.4375 11.5H13.5C13.6326 11.5 13.7598 11.4473 13.8536 11.3535C13.9473 11.2598 14 11.1326 14 11C14 10.8674 13.9473 10.7402 13.8536 10.6464C13.7598 10.5527 13.6326 10.5 13.5 10.5ZM10.5 12C10.3022 12 10.1089 11.9413 9.94443 11.8315C9.77998 11.7216 9.65181 11.5654 9.57612 11.3827C9.50043 11.1999 9.48063 10.9989 9.51921 10.8049C9.5578 10.6109 9.65304 10.4327 9.79289 10.2929C9.93275 10.153 10.1109 10.0578 10.3049 10.0192C10.4989 9.98061 10.7 10.0004 10.8827 10.0761C11.0654 10.1518 11.2216 10.28 11.3315 10.4444C11.4414 10.6089 11.5 10.8022 11.5 11C11.5 11.2652 11.3946 11.5196 11.2071 11.7071C11.0196 11.8946 10.7652 12 10.5 12Z" fill="inherit"/></svg><div class="selection-state" id="selection-state"></div>
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M2.5 5.49998H4.5625C4.67265 5.93019 4.92285 6.3115 5.27365 6.5838C5.62446 6.85611 6.05591 7.00391 6.5 7.00391C6.94409 7.00391 7.37554 6.85611 7.72635 6.5838C8.07715 6.3115 8.32735 5.93019 8.4375 5.49998H13.5C13.6326 5.49998 13.7598 5.44731 13.8536 5.35354C13.9473 5.25977 14 5.13259 14 4.99998C14 4.86738 13.9473 4.7402 13.8536 4.64643C13.7598 4.55266 13.6326 4.49998 13.5 4.49998H8.4375C8.32735 4.06978 8.07715 3.68847 7.72635 3.41617C7.37554 3.14386 6.94409 2.99606 6.5 2.99606C6.05591 2.99606 5.62446 3.14386 5.27365 3.41617C4.92285 3.68847 4.67265 4.06978 4.5625 4.49998H2.5C2.36739 4.49998 2.24021 4.55266 2.14645 4.64643C2.05268 4.7402 2 4.86738 2 4.99998C2 5.13259 2.05268 5.25977 2.14645 5.35354C2.24021 5.44731 2.36739 5.49998 2.5 5.49998ZM6.5 3.99998C6.69778 3.99998 6.89112 4.05863 7.05557 4.16852C7.22002 4.2784 7.34819 4.43458 7.42388 4.6173C7.49957 4.80003 7.51937 5.00109 7.48079 5.19508C7.4422 5.38906 7.34696 5.56724 7.20711 5.70709C7.06725 5.84694 6.88907 5.94219 6.69509 5.98077C6.50111 6.01936 6.30004 5.99955 6.11732 5.92386C5.93459 5.84818 5.77841 5.72 5.66853 5.55556C5.55865 5.39111 5.5 5.19777 5.5 4.99998C5.5 4.73477 5.60536 4.48041 5.79289 4.29288C5.98043 4.10534 6.23478 3.99998 6.5 3.99998ZM13.5 10.5H12.4375C12.3273 10.0698 12.0771 9.68847 11.7263 9.41617C11.3755 9.14386 10.9441 8.99606 10.5 8.99606C10.0559 8.99606 9.62446 9.14386 9.27365 9.41617C8.92285 9.68847 8.67265 10.0698 8.5625 10.5H2.5C2.36739 10.5 2.24021 10.5527 2.14645 10.6464C2.05268 10.7402 2 10.8674 2 11C2 11.1326 2.05268 11.2598 2.14645 11.3535C2.24021 11.4473 2.36739 11.5 2.5 11.5H8.5625C8.67265 11.9302 8.92285 12.3115 9.27365 12.5838C9.62446 12.8561 10.0559 13.0039 10.5 13.0039C10.9441 13.0039 11.3755 12.8561 11.7263 12.5838C12.0771 12.3115 12.3273 11.9302 12.4375 11.5H13.5C13.6326 11.5 13.7598 11.4473 13.8536 11.3535C13.9473 11.2598 14 11.1326 14 11C14 10.8674 13.9473 10.7402 13.8536 10.6464C13.7598 10.5527 13.6326 10.5 13.5 10.5ZM10.5 12C10.3022 12 10.1089 11.9413 9.94443 11.8315C9.77998 11.7216 9.65181 11.5654 9.57612 11.3827C9.50043 11.1999 9.48063 10.9989 9.51921 10.8049C9.5578 10.6109 9.65304 10.4327 9.79289 10.2929C9.93275 10.153 10.1109 10.0578 10.3049 10.0192C10.4989 9.98061 10.7 10.0004 10.8827 10.0761C11.0654 10.1518 11.2216 10.28 11.3315 10.4444C11.4414 10.6089 11.5 10.8022 11.5 11C11.5 11.2652 11.3946 11.5196 11.2071 11.7071C11.0196 11.8946 10.7652 12 10.5 12Z" fill="inherit"/></svg><div class="api-key-status" id="api-key-status"></div>
         </button>
         <!-- Send button (triggers prompt submission) -->
         <button class="send-button" id="send-button" disabled aria-label="Send">
@@ -359,7 +359,7 @@
           placeholder="sk-..."
           autocomplete="off"
           />
-          <div class="api-key-status" id="api-key-status-modal"></div>
+          <div class="api-key-input-status" id="api-key-input-status"></div>
           <div class="api-key-info">Keys are stored locally and only sent to OpenAI.<br/><a href="https://chatgpt.com/canvas/shared/687ead3443688191840cc7e8bb6087c5" target="_blank">API key guide</a></div>
         </div>
       </div>
@@ -380,7 +380,7 @@
     
     // Track selection count for UI feedback
     let selectedTextCount = 0;
-    const selectionState = document.getElementById('selection-state');
+    const apiKeyStatus = document.getElementById('api-key-status');
     let currentApiKey = '';
 
     function isApiKeyValid(key) {
@@ -388,25 +388,17 @@
     }
 
     // Updates the selection state display (e.g., '2 selected', 'add api key')
-    function updateSelectionState() {
+    function updateApiKeyStatus() {
       if (!isApiKeyValid(currentApiKey)) {
-        selectionState.textContent = 'Set API key';
-        selectionState.style.cursor = 'pointer';
-        selectionState.onclick = () => {
+        apiKeyStatus.textContent = 'Set API key';
+        apiKeyStatus.style.cursor = 'pointer';
+        apiKeyStatus.onclick = () => {
           apiKeyModal.style.display = 'flex';
           parent.postMessage({ pluginMessage: { type: 'get-api-key' } }, '*');
         };
-      } else if (selectedTextCount < 1) {
-        selectionState.textContent = 'select text';
-        selectionState.style.cursor = 'default';
-        selectionState.onclick = null;
       } else {
-        selectionState.textContent = `${selectedTextCount} selected`;
-        selectionState.style.cursor = 'pointer';
-        selectionState.onclick = () => {
-          parent.postMessage({ pluginMessage: { type: 'deselect-all' } }, '*');
-        };
-      }
+        apiKeyStatus.style.display = 'none';
+      } 
     }
 
     // Enable/disable send button based only on chat input content
@@ -480,7 +472,7 @@
     window.addEventListener('message', (event) => {
       if (event.data.pluginMessage && event.data.pluginMessage.type === 'selection-update') {
         selectedTextCount = event.data.pluginMessage.count;
-        updateSelectionState();
+        updateApiKeyStatus();
         updateSendButton();
       }
       // Handle API key loaded from plugin
@@ -488,8 +480,8 @@
         const savedApiKey = event.data.pluginMessage.apiKey;
         currentApiKey = savedApiKey || '';
         apiKeyInput.value = savedApiKey || '';
-        updateApiKeyStatusModal(savedApiKey);
-        updateSelectionState();
+        updateApiKeyInputStatus(savedApiKey);
+        updateApiKeyStatus();
       }
     });
 
@@ -497,7 +489,7 @@
     const keyIcon = document.getElementById('key-icon');
     const apiKeyModal = document.getElementById('api-key-modal');
     const apiKeyInput = document.getElementById('api-key-input');
-    const apiKeyStatusModal = document.getElementById('api-key-status-modal');
+    const apiKeyStatusModal = document.getElementById('api-key-input-status');
     const saveApiKeyModal = document.getElementById('save-api-key-modal');
     const closeModal = document.getElementById('close-modal');
 
@@ -518,17 +510,17 @@
       return key.startsWith('sk-') && key.length > 20;
     }
     // Update status indicator in modal
-    function updateApiKeyStatusModal(key) {
+    function updateApiKeyInputStatus(key) {
       if (!key) {
-        apiKeyStatusModal.className = 'api-key-status';
+        apiKeyStatusModal.className = 'api-key-input-status';
         apiKeyStatusModal.textContent = '';
         return;
       }
       if (validateApiKey(key)) {
-        apiKeyStatusModal.className = 'api-key-status valid';
+        apiKeyStatusModal.className = 'api-key-input-status valid';
         apiKeyStatusModal.textContent = '✓';
       } else {
-        apiKeyStatusModal.className = 'api-key-status invalid';
+        apiKeyStatusModal.className = 'api-key-input-status invalid';
         apiKeyStatusModal.textContent = '✗';
       }
     }
@@ -536,7 +528,7 @@
     let apiKeyInputSaveTimeout;
     apiKeyInput.addEventListener('input', (e) => {
       const key = e.target.value;
-      updateApiKeyStatusModal(key);
+      updateApiKeyInputStatus(key);
       clearTimeout(apiKeyInputSaveTimeout);
       apiKeyInputSaveTimeout = setTimeout(() => {
         if (key === '') {
@@ -551,7 +543,7 @@
       if (event.data.pluginMessage && event.data.pluginMessage.type === 'api-key-loaded') {
         const savedApiKey = event.data.pluginMessage.apiKey;
         apiKeyInput.value = savedApiKey || '';
-        updateApiKeyStatusModal(savedApiKey);
+        updateApiKeyInputStatus(savedApiKey);
       }
     });
     // On load, update chat input state
@@ -565,7 +557,7 @@
       if (event.data.pluginMessage && event.data.pluginMessage.type === 'api-key-loaded') {
         const savedApiKey = event.data.pluginMessage.apiKey;
         apiKeyInput.value = savedApiKey || '';
-        updateApiKeyStatusModal(savedApiKey);
+        updateApiKeyInputStatus(savedApiKey);
         updateChatInputState();
       }
     });
