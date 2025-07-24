@@ -160,11 +160,25 @@ async function callChatGPT(
         const errorData = JSON.parse(rawText);
         if (errorData.error?.message) {
           errorMessage = errorData.error.message;
-        } else if (response.status === 401) {
-          errorMessage = 'Invalid API key. Please check your OpenAI API key.';
+        }
+        if (response.status === 401) {
+          errorMessage = 'Invalid API key';
         } else if (response.status === 429) {
-          errorMessage = 'You have exceeded your OpenAI API quota. Please check your usage and billing at https://platform.openai.com/account/usage.';
-        } else {
+          // Check for OpenAI error subcodes
+          const code = errorData.error?.code;
+          if (code === 'rate_limit_exceeded') {
+            errorMessage = 'You’ve exceeded the rate limit for your organization or key.';
+          } else if (code === 'tokens_exceeded') {
+            errorMessage = 'Too many tokens sent in a short time period. Please wait and try again.';
+          } else if (code === 'requests_exceeded') {
+            errorMessage = 'Too many requests per minute/hour/day. Please slow down and try again later.';
+          } else if (code === 'context_length_exceeded') {
+            errorMessage = 'Your prompt plus response would exceed the model’s context window. Please shorten your input.';
+          } else {
+            // fallback to generic quota message if no subcode
+            errorMessage = 'You have exceeded your OpenAI API quota. Please check your usage and billing at https://platform.openai.com/account/usage.';
+          }
+        } else if (!errorData.error?.message) {
           errorMessage = response.statusText;
         }
       } catch (e) {
@@ -502,7 +516,7 @@ async function handleSendChatMessage(msg: any): Promise<void> {
       } else if (error.message.includes("401")) {
         userMessage = "Unauthorized: Please check your OpenAI API key.";
       } else {
-        userMessage = "OpenAI error: " + error.message;
+        userMessage = error.message;
       }
     }
     sendToastToUI(userMessage, 'critical');
