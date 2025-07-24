@@ -421,7 +421,7 @@
     //     UTILITY FUNCTIONS
     // =========================
     function isApiKeyValid(key) {
-      return key && key.startsWith('sk-') && key.length > 20;
+      return key.startsWith('sk-') && key.length > 20;
     }
     function validateApiKey(key) {
       return key.startsWith('sk-') && key.length > 20;
@@ -534,6 +534,13 @@
         const key = e.target.value;
         updateApiKeyInputStatus(key);
         clearTimeout(apiKeyInputSaveTimeout);
+        if (validateApiKey(key)) {
+          currentApiKey = key; // Update currentApiKey before updating status
+          updateApiKeyStatus(); // Hide apiKeyStatus immediately when valid key is entered
+        } else if (key === '') {
+          currentApiKey = '';
+          updateApiKeyStatus(); // Show apiKeyStatus immediately when key is deleted
+        }
         apiKeyInputSaveTimeout = setTimeout(() => {
           if (key === '') {
             parent.postMessage({ pluginMessage: { type: 'save-api-key', apiKey: '' } }, '*');
