@@ -117,4 +117,4 @@ This plugin provides a foundation for AI-powered design tools. You can extend it
 
 ---
 
-*"I came, I saw, I designed" - Let Mentarii help you craft the perfect content for your designs.* 
+*Veni, vidi, generatedi.* 
