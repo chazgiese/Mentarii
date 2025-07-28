@@ -21,6 +21,17 @@ interface ChatGPTResponse {
   items: any[] | null; // Parsed array items, or null if not an array
 }
 
+// History item structure for storing prompt/response pairs
+interface HistoryItem {
+  id: string; // Unique identifier for the history item
+  prompt: string; // User's original prompt
+  response: any[]; // API response array
+  timestamp: number; // Unix timestamp when created
+  textElementCount: number; // Number of text elements it was applied to
+  success: boolean; // Whether the operation was successful
+  saved: boolean; // Whether the item is saved (protected from clear all)
+}
+
 // Message sent from plugin to UI
 interface UIMessage {
   type: string;
@@ -386,6 +397,12 @@ async function getSelectedTextElementsCount(): Promise<number> {
 
 // Storage key for the OpenAI API key in Figma client storage
 const API_KEY_STORAGE_KEY = 'openai-api-key';
+// Storage key for prompt/response history
+const HISTORY_STORAGE_KEY = 'mentarii-history';
+// Storage key for saved prompt/response history (protected from clear all)
+const SAVED_HISTORY_STORAGE_KEY = 'mentarii-saved-history';
+// Maximum number of history items to store
+const MAX_HISTORY_ITEMS = 50;
 
 /**
  * Saves the OpenAI API key to Figma's client storage.
@@ -410,6 +427,167 @@ async function getApiKey(): Promise<string | null> {
 async function deleteApiKey(): Promise<void> {
   await figma.clientStorage.setAsync(API_KEY_STORAGE_KEY, undefined);
   console.log('API key deleted');
+}
+
+/**
+ * Saves a history item to Figma's client storage.
+ * Maintains a maximum of MAX_HISTORY_ITEMS items by removing oldest entries.
+ * @param historyItem The history item to save.
+ */
+async function saveHistoryItem(historyItem: HistoryItem): Promise<void> {
+  try {
+    if (historyItem.saved) {
+      // Save to saved history storage
+      const existingSavedHistory = await getSavedHistoryItems();
+      const updatedSavedHistory = [historyItem, ...existingSavedHistory];
+      const trimmedSavedHistory = updatedSavedHistory.slice(0, MAX_HISTORY_ITEMS);
+      await figma.clientStorage.setAsync(SAVED_HISTORY_STORAGE_KEY, trimmedSavedHistory);
+    } else {
+      // Save to regular history storage
+      const existingHistory = await getHistoryItems();
+      const updatedHistory = [historyItem, ...existingHistory];
+      const trimmedHistory = updatedHistory.slice(0, MAX_HISTORY_ITEMS);
+      await figma.clientStorage.setAsync(HISTORY_STORAGE_KEY, trimmedHistory);
+    }
+    console.log('History item saved');
+  } catch (error) {
+    console.error('Error saving history item:', error);
+  }
+}
+
+/**
+ * Retrieves all history items from Figma's client storage.
+ * @returns {Promise<HistoryItem[]>} Array of history items, sorted by most recent first.
+ */
+async function getHistoryItems(): Promise<HistoryItem[]> {
+  try {
+    const history = await figma.clientStorage.getAsync(HISTORY_STORAGE_KEY);
+    return Array.isArray(history) ? history : [];
+  } catch (error) {
+    console.error('Error retrieving history:', error);
+    return [];
+  }
+}
+
+/**
+ * Retrieves all saved history items from Figma's client storage.
+ * @returns {Promise<HistoryItem[]>} Array of saved history items, sorted by most recent first.
+ */
+async function getSavedHistoryItems(): Promise<HistoryItem[]> {
+  try {
+    const savedHistory = await figma.clientStorage.getAsync(SAVED_HISTORY_STORAGE_KEY);
+    return Array.isArray(savedHistory) ? savedHistory : [];
+  } catch (error) {
+    console.error('Error retrieving saved history:', error);
+    return [];
+  }
+}
+
+/**
+ * Retrieves all history items (both regular and saved) combined.
+ * @returns {Promise<HistoryItem[]>} Array of all history items, sorted by most recent first.
+ */
+async function getAllHistoryItems(): Promise<HistoryItem[]> {
+  const regularHistory = await getHistoryItems();
+  const savedHistory = await getSavedHistoryItems();
+  return [...savedHistory, ...regularHistory].sort((a, b) => b.timestamp - a.timestamp);
+}
+
+/**
+ * Deletes a specific history item by ID.
+ * @param id The ID of the history item to delete.
+ */
+async function deleteHistoryItem(id: string): Promise<void> {
+  try {
+    // Check both regular and saved history
+    const existingHistory = await getHistoryItems();
+    const existingSavedHistory = await getSavedHistoryItems();
+    
+    const updatedHistory = existingHistory.filter(item => item.id !== id);
+    const updatedSavedHistory = existingSavedHistory.filter(item => item.id !== id);
+    
+    await figma.clientStorage.setAsync(HISTORY_STORAGE_KEY, updatedHistory);
+    await figma.clientStorage.setAsync(SAVED_HISTORY_STORAGE_KEY, updatedSavedHistory);
+    console.log('History item deleted');
+  } catch (error) {
+    console.error('Error deleting history item:', error);
+  }
+}
+
+/**
+ * Toggles the saved status of a history item.
+ * @param id The ID of the history item to toggle.
+ */
+async function toggleHistoryItemSaved(id: string): Promise<void> {
+  try {
+    const existingHistory = await getHistoryItems();
+    const existingSavedHistory = await getSavedHistoryItems();
+    
+    // Find the item in either storage
+    let item = existingHistory.find(item => item.id === id);
+    let isInRegularHistory = true;
+    
+    if (!item) {
+      item = existingSavedHistory.find(item => item.id === id);
+      isInRegularHistory = false;
+    }
+    
+    if (!item) {
+      console.error('History item not found for toggle:', id);
+      return;
+    }
+    
+    // Toggle saved status
+    item.saved = !item.saved;
+    
+    if (item.saved) {
+      // Move to saved history
+      const updatedSavedHistory = [item, ...existingSavedHistory];
+      const trimmedSavedHistory = updatedSavedHistory.slice(0, MAX_HISTORY_ITEMS);
+      await figma.clientStorage.setAsync(SAVED_HISTORY_STORAGE_KEY, trimmedSavedHistory);
+      
+      // Remove from regular history if it was there
+      if (isInRegularHistory) {
+        const updatedHistory = existingHistory.filter(item => item.id !== id);
+        await figma.clientStorage.setAsync(HISTORY_STORAGE_KEY, updatedHistory);
+      }
+    } else {
+      // Move to regular history
+      const updatedHistory = [item, ...existingHistory];
+      const trimmedHistory = updatedHistory.slice(0, MAX_HISTORY_ITEMS);
+      await figma.clientStorage.setAsync(HISTORY_STORAGE_KEY, trimmedHistory);
+      
+      // Remove from saved history if it was there
+      if (!isInRegularHistory) {
+        const updatedSavedHistory = existingSavedHistory.filter(item => item.id !== id);
+        await figma.clientStorage.setAsync(SAVED_HISTORY_STORAGE_KEY, updatedSavedHistory);
+      }
+    }
+    
+    console.log('History item saved status toggled');
+  } catch (error) {
+    console.error('Error toggling history item saved status:', error);
+  }
+}
+
+/**
+ * Clears all history items from storage (but preserves saved items).
+ */
+async function clearHistory(): Promise<void> {
+  try {
+    await figma.clientStorage.setAsync(HISTORY_STORAGE_KEY, []);
+    console.log('History cleared (saved items preserved)');
+  } catch (error) {
+    console.error('Error clearing history:', error);
+  }
+}
+
+/**
+ * Generates a unique ID for history items.
+ * @returns {string} A unique identifier.
+ */
+function generateHistoryId(): string {
+  return Date.now().toString(36) + Math.random().toString(36).substr(2);
 }
 
 // ============================================================================
@@ -461,6 +639,145 @@ async function handleGetApiKey(): Promise<void> {
   }
 }
 
+/**
+ * Handles re-applying a historical result to selected text elements.
+ * If the stored response doesn't have enough items, makes a new API call to fill remaining elements.
+ * @param msg The message containing the history item ID to re-apply.
+ */
+async function handleReapplyHistory(msg: any): Promise<void> {
+  try {
+    const historyItems = await getHistoryItems();
+    const historyItem = historyItems.find(item => item.id === msg.historyId);
+    
+    if (!historyItem) {
+      sendToastToUI('History item not found', 'error');
+      figma.ui.postMessage({ type: 'chat-complete' });
+      return;
+    }
+
+    // Get current selected text count
+    const selectedTextCount = await getSelectedTextElementsCount();
+    if (selectedTextCount < 1) {
+      sendToastToUI('No text selected', 'error');
+      figma.ui.postMessage({ type: 'chat-complete' });
+      return;
+    }
+
+    // Check if stored response has enough items
+    const storedItems = historyItem.response;
+    const hasEnoughItems = Array.isArray(storedItems) && storedItems.length >= selectedTextCount;
+
+    if (hasEnoughItems) {
+      // Use stored response directly
+      const result = await replaceSelectedTextElements(storedItems);
+      if (result) {
+        sendToastToUI('Applied historical result', 'success');
+      }
+    } else {
+      // Need to make a new API call to get enough items
+      const apiKey = await getApiKey();
+      if (!apiKey) {
+        sendToastToUI('Missing valid API key', 'critical');
+        figma.ui.postMessage({ type: 'chat-complete' });
+        return;
+      }
+
+      // Create a modified prompt to get more items
+      const originalPrompt = historyItem.prompt;
+      const additionalItemsNeeded = selectedTextCount - (storedItems?.length || 0);
+      const enhancedPrompt = `${originalPrompt} (Please provide at least ${selectedTextCount} items total)`;
+
+      // Make new API call
+      const aiResponse = await callChatGPT(apiKey, enhancedPrompt, selectedTextCount);
+      
+      if (aiResponse.isArray && Array.isArray(aiResponse.items)) {
+        const result = await replaceSelectedTextElements(aiResponse.items);
+        if (result) {
+          // Save the new result to history
+          const newHistoryItem: HistoryItem = {
+            id: generateHistoryId(),
+            prompt: enhancedPrompt,
+            response: aiResponse.items,
+            timestamp: Date.now(),
+            textElementCount: selectedTextCount,
+            success: true,
+            saved: false // New items are not saved by default
+          };
+          await saveHistoryItem(newHistoryItem);
+          
+          // Refresh history in UI
+          await handleGetHistory();
+          
+          sendToastToUI('Generated new items and applied', 'success');
+        }
+      } else {
+        sendToastToUI('Failed to generate additional items', 'error');
+      }
+    }
+
+    figma.ui.postMessage({ type: 'chat-complete' });
+  } catch (error) {
+    console.error('Error reapplying history:', error);
+    let userMessage = "Error reapplying historical result. Please try again.";
+    if (error instanceof Error) {
+      userMessage = error.message;
+    }
+    sendToastToUI(userMessage, 'critical');
+    figma.ui.postMessage({ type: 'chat-complete' });
+  }
+}
+
+/**
+ * Handles retrieving history items for the UI.
+ */
+async function handleGetHistory(): Promise<void> {
+  const historyItems = await getAllHistoryItems();
+  figma.ui.postMessage({
+    type: 'history-loaded',
+    history: historyItems
+  });
+}
+
+/**
+ * Handles deleting a specific history item.
+ * @param msg The message containing the history item ID to delete.
+ */
+async function handleDeleteHistoryItem(msg: any): Promise<void> {
+  await deleteHistoryItem(msg.historyId);
+  // Refresh history in UI
+  await handleGetHistory();
+}
+
+/**
+ * Handles clearing all history items.
+ */
+async function handleClearHistory(): Promise<void> {
+  const regularHistory = await getHistoryItems();
+  
+  if (regularHistory.length === 0) {
+    sendToastToUI('History is already cleared', 'success');
+    return;
+  }
+  
+  await clearHistory();
+  figma.ui.postMessage({
+    type: 'history-loaded',
+    history: await getAllHistoryItems()
+  });
+  sendToastToUI('History cleared (saved items preserved)', 'success');
+}
+
+/**
+ * Handles toggling the saved status of a history item.
+ * @param msg The message containing the history item ID to toggle.
+ */
+async function handleToggleHistorySaved(msg: any): Promise<void> {
+  await toggleHistoryItemSaved(msg.historyId);
+  // Refresh history in UI
+  await handleGetHistory();
+  sendToastToUI('History item saved status updated', 'success');
+}
+
 // =====================
 // handleSendChatMessage: Catches errors from callChatGPT and sets user-facing error messages for the UI.
 // =====================
@@ -504,6 +821,23 @@ async function handleSendChatMessage(msg: any): Promise<void> {
     // Show unified success toast if replacement was successful
     if (result) {
       sendToastToUI('Updated text', 'success');
+      
+      // Save successful result to history
+      if (aiResponse.isArray && Array.isArray(aiResponse.items)) {
+        const historyItem: HistoryItem = {
+          id: generateHistoryId(),
+          prompt: msg.message,
+          response: aiResponse.items,
+          timestamp: Date.now(),
+          textElementCount: selectedTextCount,
+          success: true,
+          saved: false // New items are not saved by default
+        };
+        await saveHistoryItem(historyItem);
+        
+        // Refresh history in UI
+        await handleGetHistory();
+      }
     }
     figma.ui.postMessage({ type: 'chat-complete' });
   } catch (error) {
@@ -546,16 +880,39 @@ async function handleMessage(msg: PluginMessage): Promise<void> {
     case 'send-chat-message':
       await handleSendChatMessage(msg);
       break;
+      
+    case 'reapply-history':
+      await handleReapplyHistory(msg);
+      break;
+      
+    case 'get-history':
+      await handleGetHistory();
+      break;
+      
+    case 'delete-history-item':
+      await handleDeleteHistoryItem(msg);
+      break;
+      
+    case 'clear-history':
+      await handleClearHistory();
+      break;
+      
+    case 'toggle-history-saved':
+      await handleToggleHistorySaved(msg);
+      break;
+      
     case 'deselect-all':
       figma.currentPage.selection = [];
       await updateSelectionCount();
       break;
+      
     case 'notify':
       // Handle notify messages from UI
       if (typeof msg.message === 'string') {
         sendToastToUI(msg.message, msg.options?.type === 'error' ? 'error' : 'success');
       }
       break;
+      
     default:
       console.warn('Unknown message type:', msg.type);
   }
@@ -568,7 +925,7 @@ async function handleMessage(msg: PluginMessage): Promise<void> {
 // Initialize the plugin UI with specified dimensions and theme support
 figma.showUI(__html__, { 
   width: 400, 
-  height: 188,
+  height: 400,
   themeColors: true
 });
 

@@ -25,6 +25,170 @@
       margin: 0px;
     }
     
+    /* History section container */
+    .history-section {
+      margin-top: 16px;
+      border-top: 1px solid var(--figma-color-border);
+      padding-top: 16px;
+    }
+    
+    .history-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    
+    .history-title {
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--figma-color-text);
+      letter-spacing: 1%;
+    }
+    
+    .history-clear-btn {
+      background: none;
+      border: none;
+      color: var(--figma-color-text-secondary);
+      font-size: 10px;
+      cursor: pointer;
+      padding: 4px 8px;
+      border-radius: 4px;
+      transition: background-color 0.2s;
+    }
+    
+    .history-clear-btn:hover {
+      background-color: var(--figma-color-bg-hover);
+    }
+    
+    .history-list {
+      max-height: 200px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    
+    .history-item {
+      background: var(--figma-color-bg-secondary);
+      border-radius: 8px;
+      padding: 12px;
+      cursor: pointer;
+      transition: background-color 0.2s;
+      border: 1px solid transparent;
+    }
+    
+    .history-item:hover {
+      background: var(--figma-color-bg-tertiary);
+      border-color: var(--figma-color-border);
+    }
+    
+    .history-item.saved {
+      border-color: var(--figma-color-border-brand);
+      background: var(--figma-color-bg-brand-soft);
+    }
+    
+    .history-item-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 8px;
+    }
+    
+    .history-item-prompt {
+      font-size: 11px;
+      color: var(--figma-color-text);
+      line-height: 14px;
+      flex: 1;
+      margin-right: 8px;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    
+    .history-item-actions {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+    }
+    
+    .history-item-delete {
+      background: none;
+      border: none;
+      color: var(--figma-color-text-secondary);
+      cursor: pointer;
+      padding: 2px;
+      border-radius: 2px;
+      font-size: 10px;
+      min-width: 16px;
+      height: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background-color 0.2s;
+    }
+    
+    .history-item-delete:hover {
+      background-color: var(--figma-color-bg-danger);
+      color: var(--figma-color-text-ondanger);
+    }
+    
+    .history-item-save {
+      background: none;
+      border: none;
+      color: var(--figma-color-text-secondary);
+      cursor: pointer;
+      padding: 2px;
+      border-radius: 2px;
+      font-size: 10px;
+      min-width: 16px;
+      height: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background-color 0.2s;
+      margin-right: 4px;
+    }
+    
+    .history-item-save:hover {
+      background-color: var(--figma-color-bg-hover);
+    }
+    
+    .history-item-save.saved {
+      color: var(--figma-color-text-brand);
+    }
+    
+    .history-item-save.saved:hover {
+      background-color: var(--figma-color-bg-brand);
+      color: var(--figma-color-text-on-brand);
+    }
+    
+    .history-item-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 10px;
+      color: var(--figma-color-text-secondary);
+    }
+    
+    .history-item-count {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    
+    .history-item-time {
+      font-size: 9px;
+    }
+    
+    .history-empty {
+      text-align: center;
+      color: var(--figma-color-text-disabled);
+      font-size: 11px;
+      padding: 20px;
+    }
+    
     /* Container for chat input and send button */
     .chat-input-container {
       display: flex;
@@ -266,6 +430,7 @@
     .toast-container {
       bottom: 16px;
       display: flex;
+      flex-direction: column;
       justify-content: center;
       left: 0;
       padding: 0 32px 0;
@@ -393,6 +558,17 @@
       
     </div>
 
+    <!-- History section for displaying and re-applying previous prompts/responses -->
+    <div class="history-section" id="history-section" style="display: none;">
+      <div class="history-header">
+        <div class="history-title">History</div>
+        <button class="history-clear-btn" id="clear-history-btn">Clear all</button>
+      </div>
+      <div class="history-list" id="history-list">
+        <!-- History items will be dynamically inserted here -->
+      </div>
+    </div>
+
     <div class="loading-indicator" id="loading-indicator"><div class="loading-indicator-bar"></div></div>
 
     <!-- API Key Modal for entering and validating OpenAI API key -->
@@ -433,6 +609,7 @@
       selectDomElements();
       updateChatInputState();
       parent.postMessage({ pluginMessage: { type: 'get-api-key' } }, '*');
+      loadHistory(); // Load history on initialization
       autoResize();
       addEventListeners();
     });
@@ -441,9 +618,11 @@
     //   DOM ELEMENT SELECTION
     // =========================
     let chatInput, sendButton, apiKeyStatus, keyIcon, apiKeyModal, apiKeyInput, apiKeyStatusModal, closeModal;
+    let historySection, historyList, clearHistoryBtn;
     let selectedTextCount = 0;
     let currentApiKey = '';
     let apiKeyInputSaveTimeout;
+    let historyItems = [];
 
     function selectDomElements() {
       chatInput = document.getElementById('chat-input');
@@ -455,6 +634,9 @@
       apiKeyInput = document.getElementById('api-key-input');
       apiKeyStatusModal = document.getElementById('api-key-input-status');
       closeModal = document.getElementById('close-modal');
+      historySection = document.getElementById('history-section');
+      historyList = document.getElementById('history-list');
+      clearHistoryBtn = document.getElementById('clear-history-btn');
     }
 
     // =========================
@@ -515,6 +697,142 @@
     function updateChatInputState() {
       updateSendButton();
       autoResize();
+    }
+
+    // =========================
+    //     HISTORY FUNCTIONS
+    // =========================
+    function formatTimestamp(timestamp) {
+      const date = new Date(timestamp);
+      const now = new Date();
+      const diffMs = now - date;
+      const diffMins = Math.floor(diffMs / 60000);
+      const diffHours = Math.floor(diffMs / 3600000);
+      const diffDays = Math.floor(diffMs / 86400000);
+
+      if (diffMins < 1) return 'Just now';
+      if (diffMins < 60) return `${diffMins}m ago`;
+      if (diffHours < 24) return `${diffHours}h ago`;
+      if (diffDays < 7) return `${diffDays}d ago`;
+      return date.toLocaleDateString();
+    }
+
+    function renderHistoryItems() {
+      if (historyItems.length === 0) {
+        historyList.innerHTML = '<div class="history-empty">No history yet</div>';
+        historySection.style.display = 'none';
+        return;
+      }
+
+      historySection.style.display = 'block';
+      historyList.innerHTML = '';
+
+      historyItems.forEach(item => {
+        const historyItem = document.createElement('div');
+        historyItem.className = 'history-item';
+        if (item.saved) {
+          historyItem.classList.add('saved');
+        }
+        historyItem.dataset.historyId = item.id;
+
+        historyItem.innerHTML = `
+          <div class="history-item-header">
+            <div class="history-item-prompt" title="${item.prompt}">${item.prompt}</div>
+            <div class="history-item-actions">
+              <button class="history-item-save ${item.saved ? 'saved' : ''}" data-history-id="${item.id}" title="${item.saved ? 'Unsave' : 'Save'}">
+                ${item.saved ? '★' : '☆'}
+              </button>
+              <button class="history-item-delete" data-history-id="${item.id}" title="Delete">×</button>
+            </div>
+          </div>
+          <div class="history-item-meta">
+            <div class="history-item-count">
+              <span>${item.response.length} items</span>
+              ${item.textElementCount ? `<span>• ${item.textElementCount} elements</span>` : ''}
+              ${item.saved ? '<span>• Saved</span>' : ''}
+            </div>
+            <div class="history-item-time">${formatTimestamp(item.timestamp)}</div>
+          </div>
+        `;
+
+        // Add click handler for re-applying
+        historyItem.addEventListener('click', (e) => {
+          if (e.target.classList.contains('history-item-delete') || e.target.classList.contains('history-item-save')) {
+            e.stopPropagation();
+            return;
+          }
+          reapplyHistoryItem(item.id);
+        });
+
+        // Add save/unsave handler
+        const saveBtn = historyItem.querySelector('.history-item-save');
+        saveBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          toggleHistoryItemSaved(item.id);
+        });
+
+        // Add delete handler
+        const deleteBtn = historyItem.querySelector('.history-item-delete');
+        deleteBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          deleteHistoryItem(item.id);
+        });
+
+        historyList.appendChild(historyItem);
+      });
+    }
+
+    function reapplyHistoryItem(historyId) {
+      if (!isApiKeyValid(currentApiKey)) {
+        showToast('Missing valid API key', 'critical');
+        return;
+      }
+      if (selectedTextCount < 1) {
+        showToast('First, select text elements', 'error');
+        return;
+      }
+
+      setLoading(true);
+      parent.postMessage({ 
+        pluginMessage: { 
+          type: 'reapply-history',
+          historyId: historyId 
+        } 
+      }, '*');
+    }
+
+    function deleteHistoryItem(historyId) {
+      parent.postMessage({ 
+        pluginMessage: { 
+          type: 'delete-history-item',
+          historyId: historyId 
+        } 
+      }, '*');
+    }
+
+    function clearAllHistory() {
+      parent.postMessage({ 
+        pluginMessage: { 
+          type: 'clear-history'
+        } 
+      }, '*');
+    }
+
+    function toggleHistoryItemSaved(historyId) {
+      parent.postMessage({ 
+        pluginMessage: { 
+          type: 'toggle-history-saved',
+          historyId: historyId 
+        } 
+      }, '*');
+    }
+
+    function loadHistory() {
+      parent.postMessage({ 
+        pluginMessage: { 
+          type: 'get-history'
+        } 
+      }, '*');
     }
 
     // =========================
@@ -658,6 +976,20 @@
         if (msg.type === 'chat-complete') {
           setLoading(false);
         }
+        if (msg.type === 'history-loaded') {
+          historyItems = msg.history;
+          renderHistoryItems();
+        }
+        if (msg.type === 'history-item-deleted') {
+          historyItems = historyItems.filter(item => item.id !== msg.historyId);
+          renderHistoryItems();
+          showToast('History item deleted', 'success');
+        }
+        if (msg.type === 'history-cleared') {
+          historyItems = [];
+          renderHistoryItems();
+          showToast('All history cleared', 'success');
+        }
       });
     }
 
@@ -668,6 +1000,7 @@
       addChatInputListeners();
       addApiKeyModalListeners();
       addPluginMessageListeners();
+      clearHistoryBtn.addEventListener('click', clearAllHistory);
     }
   </script>
 </body>
