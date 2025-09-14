@@ -28,6 +28,7 @@
     /* Category selector styling */
     .category-selector {
       margin-bottom: 12px;
+      position: relative;
     }
     
     .category-label {
@@ -39,7 +40,7 @@
       margin-bottom: 6px;
     }
     
-    .category-dropdown {
+    .category-button {
       background-color: var(--figma-color-bg-secondary);
       border: 1px solid var(--figma-color-border);
       border-radius: 6px;
@@ -50,15 +51,84 @@
       width: 100%;
       cursor: pointer;
       transition: border-color 0.2s;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      text-align: left;
     }
     
-    .category-dropdown:focus {
+    .category-button:focus {
       outline: none;
       border-color: var(--figma-color-border-brand);
     }
     
-    .category-dropdown:hover {
+    .category-button:hover {
       border-color: var(--figma-color-border-hover);
+    }
+    
+    .category-button:active {
+      border-color: var(--figma-color-border-brand);
+    }
+    
+    .category-arrow {
+      transition: transform 0.2s;
+      fill: var(--figma-color-text);
+    }
+    
+    .category-button.open .category-arrow {
+      transform: rotate(180deg);
+    }
+    
+    .category-dropdown {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background-color: var(--figma-color-bg-secondary);
+      border: 1px solid var(--figma-color-border);
+      border-radius: 6px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      z-index: 1000;
+      max-height: 200px;
+      overflow-y: auto;
+      display: none;
+    }
+    
+    .category-dropdown.open {
+      display: block;
+    }
+    
+    .category-option {
+      padding: 8px 12px;
+      cursor: pointer;
+      font-size: 12px;
+      color: var(--figma-color-text);
+      transition: background-color 0.2s;
+      border-bottom: 1px solid var(--figma-color-border);
+    }
+    
+    .category-option:last-child {
+      border-bottom: none;
+    }
+    
+    .category-option:hover {
+      background-color: var(--figma-color-bg-hover);
+    }
+    
+    .category-option.selected {
+      background-color: var(--figma-color-bg-brand-soft);
+      color: var(--figma-color-text-brand);
+    }
+    
+    .category-option.focused {
+      background-color: var(--figma-color-bg-hover);
+      outline: 2px solid var(--figma-color-border-brand);
+      outline-offset: -2px;
+    }
+    
+    .category-option:focus {
+      outline: 2px solid var(--figma-color-border-brand);
+      outline-offset: -2px;
     }
     
     /* History section container */
@@ -576,21 +646,27 @@
     <div class="chat-section">
       <!-- Category selection dropdown -->
       <div class="category-selector">
-        <label for="category-dropdown" class="category-label">Content Category:</label>
-        <select id="category-dropdown" class="category-dropdown">
-          <option value="">None (Generic)</option>
-          <option value="emails">Emails</option>
-          <option value="headlines">Headlines</option>
-          <option value="us_phones">US Phone Numbers</option>
-          <option value="addresses">Addresses</option>
-          <option value="dates">Dates</option>
-          <option value="prices">Prices</option>
-          <option value="product_names">Product Names</option>
-          <option value="skus">SKUs</option>
-          <option value="order_ids">Order IDs</option>
-          <option value="times">Times</option>
-          <option value="durations">Durations</option>
-        </select>
+        <label for="category-button" class="category-label">Content Category:</label>
+        <button id="category-button" class="category-button" type="button" aria-haspopup="listbox" aria-expanded="false">
+          <span id="category-button-text">None (Generic)</span>
+          <svg class="category-arrow" width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+        <div id="category-dropdown" class="category-dropdown" role="listbox" aria-labelledby="category-button">
+          <div class="category-option" data-value="" role="option" tabindex="0">None (Generic)</div>
+          <div class="category-option" data-value="emails" role="option" tabindex="0">Emails</div>
+          <div class="category-option" data-value="headlines" role="option" tabindex="0">Headlines</div>
+          <div class="category-option" data-value="us_phones" role="option" tabindex="0">US Phone Numbers</div>
+          <div class="category-option" data-value="addresses" role="option" tabindex="0">Addresses</div>
+          <div class="category-option" data-value="dates" role="option" tabindex="0">Dates</div>
+          <div class="category-option" data-value="prices" role="option" tabindex="0">Prices</div>
+          <div class="category-option" data-value="product_names" role="option" tabindex="0">Product Names</div>
+          <div class="category-option" data-value="skus" role="option" tabindex="0">SKUs</div>
+          <div class="category-option" data-value="order_ids" role="option" tabindex="0">Order IDs</div>
+          <div class="category-option" data-value="times" role="option" tabindex="0">Times</div>
+          <div class="category-option" data-value="durations" role="option" tabindex="0">Durations</div>
+        </div>
       </div>
       
       <!-- Chat selection state display (shows how many text elements are selected) -->
@@ -675,12 +751,14 @@
     //   DOM ELEMENT SELECTION
     // =========================
     let chatInput, sendButton, apiKeyStatus, keyIcon, apiKeyModal, apiKeyInput, apiKeyStatusModal, closeModal, loadingIndicator;
-    let historySection, historyList, clearHistoryBtn, categoryDropdown;
+    let historySection, historyList, clearHistoryBtn, categoryButton, categoryDropdown, categoryButtonText;
     let selectedTextCount = 0;
     let currentApiKey = '';
     let apiKeyInputSaveTimeout;
     let historyItems = [];
     let selectedCategory = '';
+    let isDropdownOpen = false;
+    let currentFocusedIndex = -1;
 
     function selectDomElements() {
       try {
@@ -696,7 +774,9 @@
         historySection = document.getElementById('history-section');
         historyList = document.getElementById('history-list');
         clearHistoryBtn = document.getElementById('clear-history-btn');
+        categoryButton = document.getElementById('category-button');
         categoryDropdown = document.getElementById('category-dropdown');
+        categoryButtonText = document.getElementById('category-button-text');
         
         console.log('DOM elements selected:', {
           chatInput: !!chatInput,
@@ -711,7 +791,9 @@
           historySection: !!historySection,
           historyList: !!historyList,
           clearHistoryBtn: !!clearHistoryBtn,
-          categoryDropdown: !!categoryDropdown
+          categoryButton: !!categoryButton,
+          categoryDropdown: !!categoryDropdown,
+          categoryButtonText: !!categoryButtonText
         });
       } catch (error) {
         console.error('Error selecting DOM elements:', error);
@@ -1086,15 +1168,169 @@
     // =========================
     function addCategoryDropdownListeners() {
       try {
-        if (categoryDropdown) {
-          categoryDropdown.addEventListener('change', (e) => {
-            selectedCategory = e.target.value;
-            // Save selected category to localStorage
-            localStorage.setItem('mentarii-selected-category', selectedCategory);
+        if (categoryButton && categoryDropdown) {
+          // Button click to toggle dropdown
+          categoryButton.addEventListener('click', (e) => {
+            e.stopPropagation();
+            toggleDropdown();
           });
+
+          // Option selection
+          const options = categoryDropdown.querySelectorAll('.category-option');
+          options.forEach((option, index) => {
+            option.addEventListener('click', (e) => {
+              e.stopPropagation();
+              selectOption(option, index);
+            });
+
+            // Mouse hover for visual feedback
+            option.addEventListener('mouseenter', () => {
+              updateFocusedOption(index);
+            });
+          });
+
+          // Close dropdown when clicking outside
+          document.addEventListener('click', (e) => {
+            if (!categoryButton.contains(e.target) && !categoryDropdown.contains(e.target)) {
+              closeDropdown();
+            }
+          });
+
+          // Keyboard navigation
+          categoryButton.addEventListener('keydown', handleButtonKeydown);
+          categoryDropdown.addEventListener('keydown', handleDropdownKeydown);
         }
       } catch (error) {
         console.error('Error adding category dropdown listeners:', error);
+      }
+    }
+
+    function toggleDropdown() {
+      if (isDropdownOpen) {
+        closeDropdown();
+      } else {
+        openDropdown();
+      }
+    }
+
+    function openDropdown() {
+      isDropdownOpen = true;
+      categoryButton.classList.add('open');
+      categoryButton.setAttribute('aria-expanded', 'true');
+      categoryDropdown.classList.add('open');
+      
+      // Focus the first option or currently selected option
+      const options = categoryDropdown.querySelectorAll('.category-option');
+      const selectedOption = categoryDropdown.querySelector('.category-option.selected');
+      if (selectedOption) {
+        currentFocusedIndex = Array.from(options).indexOf(selectedOption);
+      } else {
+        currentFocusedIndex = 0;
+      }
+      updateFocusedOption(currentFocusedIndex);
+    }
+
+    function closeDropdown() {
+      isDropdownOpen = false;
+      categoryButton.classList.remove('open');
+      categoryButton.setAttribute('aria-expanded', 'false');
+      categoryDropdown.classList.remove('open');
+      currentFocusedIndex = -1;
+      
+      // Remove focus from all options
+      const options = categoryDropdown.querySelectorAll('.category-option');
+      options.forEach(option => {
+        option.classList.remove('focused');
+        option.setAttribute('tabindex', '-1');
+      });
+    }
+
+    function selectOption(option, index) {
+      const value = option.dataset.value;
+      const text = option.textContent;
+      
+      // Update selected category
+      selectedCategory = value;
+      
+      // Update button text
+      categoryButtonText.textContent = text;
+      
+      // Update visual selection
+      const options = categoryDropdown.querySelectorAll('.category-option');
+      options.forEach(opt => opt.classList.remove('selected'));
+      option.classList.add('selected');
+      
+      // Save to localStorage
+      localStorage.setItem('mentarii-selected-category', selectedCategory);
+      
+      // Close dropdown
+      closeDropdown();
+      
+      // Return focus to button
+      categoryButton.focus();
+    }
+
+    function updateFocusedOption(index) {
+      const options = categoryDropdown.querySelectorAll('.category-option');
+      
+      // Remove focus from all options
+      options.forEach(option => {
+        option.classList.remove('focused');
+        option.setAttribute('tabindex', '-1');
+      });
+      
+      // Add focus to current option
+      if (index >= 0 && index < options.length) {
+        const option = options[index];
+        option.classList.add('focused');
+        option.setAttribute('tabindex', '0');
+        option.focus();
+        currentFocusedIndex = index;
+      }
+    }
+
+    function handleButtonKeydown(e) {
+      if (e.key === 'Enter' || e.key === ' ' || e.key === 'ArrowDown') {
+        e.preventDefault();
+        if (!isDropdownOpen) {
+          openDropdown();
+        } else if (e.key === 'ArrowDown') {
+          updateFocusedOption(0);
+        }
+      } else if (e.key === 'Escape') {
+        closeDropdown();
+      }
+    }
+
+    function handleDropdownKeydown(e) {
+      const options = categoryDropdown.querySelectorAll('.category-option');
+      
+      switch (e.key) {
+        case 'ArrowDown':
+          e.preventDefault();
+          const nextIndex = currentFocusedIndex < options.length - 1 ? currentFocusedIndex + 1 : 0;
+          updateFocusedOption(nextIndex);
+          break;
+        case 'ArrowUp':
+          e.preventDefault();
+          const prevIndex = currentFocusedIndex > 0 ? currentFocusedIndex - 1 : options.length - 1;
+          updateFocusedOption(prevIndex);
+          break;
+        case 'Enter':
+        case ' ':
+          e.preventDefault();
+          if (currentFocusedIndex >= 0 && currentFocusedIndex < options.length) {
+            selectOption(options[currentFocusedIndex], currentFocusedIndex);
+          }
+          break;
+        case 'Escape':
+          e.preventDefault();
+          closeDropdown();
+          categoryButton.focus();
+          break;
+        case 'Tab':
+          closeDropdown();
+          break;
       }
     }
 
@@ -1103,7 +1339,19 @@
         const savedCategory = localStorage.getItem('mentarii-selected-category');
         if (savedCategory && categoryDropdown) {
           selectedCategory = savedCategory;
-          categoryDropdown.value = savedCategory;
+          
+          // Find and select the corresponding option
+          const options = categoryDropdown.querySelectorAll('.category-option');
+          const targetOption = Array.from(options).find(option => option.dataset.value === savedCategory);
+          
+          if (targetOption) {
+            const text = targetOption.textContent;
+            categoryButtonText.textContent = text;
+            
+            // Update visual selection
+            options.forEach(opt => opt.classList.remove('selected'));
+            targetOption.classList.add('selected');
+          }
         }
       } catch (error) {
         console.error('Error loading selected category:', error);
