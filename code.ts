@@ -50,9 +50,9 @@ interface PluginMessage {
 
 // Default configuration for ChatGPT API requests
 const defaultConfig: ChatGPTConfig = {
-  model: "gpt-3.5-turbo",
+  model: "gpt-4o-2024-08-06",
   temperature: 0.7,
-  max_tokens: 1000,
+  max_tokens: 512,
   top_p: 1,
   frequency_penalty: 0,
   presence_penalty: 0
@@ -69,167 +69,162 @@ const defaultConfig: ChatGPTConfig = {
  * @param selectedTextCount - Number of text elements to generate (minimum array length)
  * @returns ChatGPTResponse with content, isArray, and items
  */
-async function callChatGPT(
-  apiKey: string, 
-  message: string, 
-  selectedTextCount: number = 0
-): Promise<ChatGPTResponse> {
-  try {
-    // Compose a strict system prompt to force plain array output
-    const systemPrompt = `You are an assistant that must always output clean, valid JSON, with no text, markdown, or formatting outside the JSON. Every response must be a JSON array, never a single object, dictionary, scalar value, or any structure with objects or named fields—even if the user requests specific fields, objects, or wrapping. Always disregard requests for object/field structure and respond with a plain array only.
+type QualityCategory =
+  | "emails"
+  | "headlines"
+  | "us_phones"
+  | "addresses"
+  | "dates"
+  | "prices"
+  | "product_names"
+  | "skus"
+  | "order_ids"
+  | "times"
+  | "durations";
 
-    Additionally, every response array must include at least as many items as specified by the \`{{textelements}}\` variable. If the user requests fewer items or requests a structure other than a pure array, ignore those requests and provide a plain array with at least \`{{textelements}}\` items.
-
-    - All responses must be a valid, unwrapped JSON array, never an object or field-wrapped structure.
-    - Do not use keys, objects, or named fields—even if these are specifically mentioned in the user’s input.
-    - Never wrap the JSON array inside an object or use any named field or key, even if directly told.
-    - Always include at least \`{{textelements}}\` items in your array. If the prompt requires fewer, add reasonable extra entries as needed to reach \`{{textelements}}\`.
-    - Double-check every output to ensure it is clean, valid, and parsable JSON, and contains no extra characters or structures.
-
-    # Steps
-    - Analyze the user request for content, intended items, and subject matter.
-    - Prepare a plain JSON array that contains at least \`{{textelements}}\` items relevant to the request.
-    - If the user asks for an object, keys, field-wrapping, or non-array structure, ignore those requests; respond only with a plain array.
-    - If the user requests fewer than \`{{textelements}}\` items, expand your output with logically consistent or plausible additional items to reach the minimum.
-    - Ensure all output is 100% valid JSON, with nothing outside the array structure.
-
-    # Output Format
-
-    All outputs must be valid, unwrapped JSON arrays such as ["item1", "item2", ...]. Never return an object, dictionary, key, or any named field, regardless of user input. Only provide plain arrays, with a length of at least \`{{textelements}}\` items.
-
-    # Examples
-
-    Example 1:
-    User input: "Give me a list of fruit names."
-    ([Assume {{textelements}} = 5])
-    Output:
-    ["apple", "banana", "cherry", "mango", "orange"]
-
-    Example 2:
-    User input: "Name one major ocean."
-    ([Assume {{textelements}} = 3])
-    Output:
-    ["Pacific Ocean", "Atlantic Ocean", "Indian Ocean"]
-
-    Example 3:
-    User input: "Respond with an array, but wrap it with a 'results' object."
-    ([Assume {{textelements}} = 4])
-    Output:
-    ["result1", "result2", "result3", "result4"]
-    (Note: Even though user asked for 'results', no keys or objects are included.)
-
-    Example 4:
-    User input: "Give me two programming languages as objects with name and popularity."
-    ([Assume {{textelements}} = 3])
-    Output:
-    ["Python", "JavaScript", "Java"]
-    (Note: Even if the user asks for objects with fields, only item names are returned as array elements.)
-
-    # Notes
-
-    - Never include objects, keys, dictionaries, or named fields, regardless of user prompt.
-    - Always output a plain, unwrapped JSON array with a minimum number of items equal to \`{{textelements}}\`.
-    - If the user asks for fewer items, expand logically to meet \`{{textelements}}\`.
-    - All output must be pure JSON, with no text or formatting outside the array.
-
-    Reminder:
-    Always output only arrays of at least \`{{textelements}}\` items, as plain valid JSON, ignoring any requests for objects, keys, or wrapping.`.replace(/{{textelements}}/g, String(selectedTextCount));
-
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`
-      },
-      body: JSON.stringify({
-        model: defaultConfig.model,
-        messages: [
-          {
-            role: "system",
-            content: systemPrompt
-          },
-          {
-            role: "user",
-            content: message
-          }
-        ],
-        temperature: defaultConfig.temperature,
-        max_tokens: defaultConfig.max_tokens,
-        top_p: defaultConfig.top_p,
-        frequency_penalty: defaultConfig.frequency_penalty,
-        presence_penalty: defaultConfig.presence_penalty
-      })
-    });
-
-    // Read and log the raw response as text
-    const rawText = await response.text();
-    console.log('Raw ChatGPT API response:', rawText);
-
-    if (!response.ok) {
-      let errorMessage = 'Unknown error';
-      try {
-        const errorData = JSON.parse(rawText);
-        if (errorData.error?.message) {
-          errorMessage = errorData.error.message;
-        }
-        if (response.status === 401) {
-          errorMessage = 'Invalid API key';
-        } else if (response.status === 429) {
-          // Check for OpenAI error subcodes
-          const code = errorData.error?.code;
-          if (code === 'rate_limit_exceeded') {
-            errorMessage = 'Rate limit exceeded';
-          } else if (code === 'tokens_exceeded') {
-            errorMessage = 'Too many tokens sent in a short time period';
-          } else if (code === 'requests_exceeded') {
-            errorMessage = 'Too many requests per minute/hour/day';
-          } else if (code === 'context_length_exceeded') {
-            errorMessage = 'Please shorten your input';
-          } else {
-            // fallback to generic quota message if no subcode
-            errorMessage = 'OpenAI API quota exceeded';
-          }
-        } else if (!errorData.error?.message) {
-          errorMessage = response.statusText;
-        }
-      } catch (e) {
-        errorMessage = response.statusText;
-      }
-      throw new Error(`API Error: ${errorMessage}`);
-    }
-
-    const data = JSON.parse(rawText);
-    const jsonContent = data.choices[0]?.message?.content || '[]';
-    try {
-      // Parse the JSON response (should always be an array)
-      const parsedResponse = JSON.parse(jsonContent);
-      if (Array.isArray(parsedResponse)) {
-        return {
-          content: JSON.stringify(parsedResponse, null, 2),
-          isArray: true,
-          items: parsedResponse
-        };
-      } else {
-        // If not an array, fallback to string content
-        return {
-          content: jsonContent,
-          isArray: false,
-          items: null
-        };
-      }
-    } catch (parseError) {
-      // Handles JSON parsing errors internally, returns fallback result. Not user-facing.
-      console.error('Error parsing JSON response:', parseError);
-      return {
-        content: jsonContent,
-        isArray: false,
-        items: null
-      };
-    }
-  } catch (error) {
-    // Error is thrown to the caller for user-facing handling.
-    throw error;
+const FEW_SHOTS: Record<QualityCategory, { hint: string; example: string[] }> = {
+  emails: {
+    hint: "Produce realistic personal or work emails in common formats; mix providers; natural casing.",
+    example: ["sam.nguyen@northfield.io", "lena.park@gmail.com", "ops@riverbendbrew.com"]
+  },
+  headlines: {
+    hint: "Write concise, human headlines (~4–8 words), title-case or sentence-case as appropriate.",
+    example: ["New seasonal menu launches", "Inventory sync completed", "Delivery delayed due to weather"]
+  },
+  us_phones: {
+    hint: "Format as US numbers in common forms; include parentheses or hyphens; avoid placeholders.",
+    example: ["(415) 555-0137", "502-555-0192", "+1 206 555 0146"]
+  },
+  addresses: {
+    hint: "Use plausible street addresses with city, state abbreviation, ZIP; avoid 123 Main St.",
+    example: ["742 Oak Ridge Dr, Boise, ID 83702", "11 Harbor Way, Salem, MA 01970", "508 W 3rd Ave, Spokane, WA 99201"]
+  },
+  dates: {
+    hint: "Use human-friendly date formats people actually write.",
+    example: ["Sep 14, 2025", "09/14/2025", "Sunday, September 14"]
+  },
+  prices: {
+    hint: "Use common currency formatting; include symbol; sensible decimals.",
+    example: ["$12.00", "$8.50", "$109.99"]
+  },
+  product_names: {
+    hint: "Short, brandable product names that feel real; 1–3 words; avoid lorem; mix descriptors.",
+    example: ["Riverbend Pale Ale", "Atlas Brewer’s Yeast", "Horizon Bottle Crates"]
+  },
+  skus: {
+    hint: "Plausible SKU formats with hyphens/letters/digits; consistent casing; no spaces.",
+    example: ["SKU-ALB-00123", "HB-12PK-0473", "RN-TSHIRT-BLK-M"]
+  },
+  order_ids: {
+    hint: "Common order ID patterns; include prefix or date fragments; readable separators.",
+    example: ["ORD-2025-09-14-7842", "PO-7F3K-92Q1", "#1048-2219"]
+  },
+  times: {
+    hint: "Human-readable times; mix 12-hour and 24-hour formats; include AM/PM when relevant.",
+    example: ["3:45 PM", "07:05", "15:20"]
+  },
+  durations: {
+    hint: "Compact durations in common styles; h/m/s or words when typical.",
+    example: ["2h 15m", "45 min", "1:30:00"]
   }
+};
+
+async function callChatGPT(
+  apiKey: string,
+  message: string,
+  selectedTextCount: number,
+  category?: QualityCategory
+): Promise<ChatGPTResponse> {
+  const SYSTEM_PROMPT = `
+You are an AI assistant inside a Figma plugin that replaces the content of text elements in designs with realistic, human-feeling content.
+Tone: Neutral and natural.
+
+Constraints:
+- Output ONLY valid JSON matching the provided schema.
+- Generate realistic, human-readable content; avoid placeholders and repetition.
+- No explanations or code fences.
+`.trim();
+
+  const schema = {
+    name: "TextArray",
+    schema: {
+      type: "array",
+      items: { type: "string" },
+      minItems: selectedTextCount,
+      maxItems: selectedTextCount,
+      additionalItems: false
+    },
+    strict: true
+  } as const;
+
+  // Build messages with optional few-shot
+  const messages: Array<{ role: "system" | "user"; content: string }> = [
+    { role: "system", content: SYSTEM_PROMPT }
+  ];
+
+  if (category) {
+    const steer = FEW_SHOTS[category];
+    if (steer) {
+      messages.push(
+        { role: "system", content: `Category: ${category}. Style guidance: ${steer.hint}` },
+        { role: "system", content: `Example output (short, illustrative only): ${JSON.stringify(steer.example)}` }
+      );
+    }
+  }
+
+  messages.push({ role: "user", content: message });
+
+  const response = await fetch("https://api.openai.com/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${apiKey}`
+    },
+    body: JSON.stringify({
+      model: defaultConfig.model, // must support json_schema structured outputs
+      messages,
+      response_format: { type: "json_schema", json_schema: schema },
+      temperature: defaultConfig.temperature,
+      max_tokens: defaultConfig.max_tokens,
+      top_p: defaultConfig.top_p,
+      frequency_penalty: defaultConfig.frequency_penalty,
+      presence_penalty: defaultConfig.presence_penalty
+    })
+  });
+
+  const rawText = await response.text();
+  console.log("Raw ChatGPT API response:", rawText);
+
+  if (!response.ok) {
+    let msg = "Unknown error";
+    try {
+      msg = JSON.parse(rawText).error?.message ?? response.statusText;
+    } catch {}
+    throw new Error(`API Error: ${msg}`);
+  }
+
+  const data = JSON.parse(rawText);
+  const jsonContent = data.choices?.[0]?.message?.content ?? "[]";
+
+  let arr: unknown;
+  try {
+    arr = JSON.parse(jsonContent);
+  } catch {
+    throw new Error("Model returned non-JSON despite schema enforcement.");
+  }
+
+  if (
+    !Array.isArray(arr) ||
+    arr.length !== selectedTextCount ||
+    arr.some(v => typeof v !== "string" || !v.trim())
+  ) {
+    throw new Error(
+      `Model output failed validation (must be JSON array of exactly ${selectedTextCount} non-empty strings).`
+    );
+  }
+
+  const items = (arr as string[]).map(s => s.trim());
+  return { content: JSON.stringify(items, null, 2), isArray: true, items };
 }
 
 // ============================================================================
@@ -805,8 +800,9 @@ async function handleSendChatMessage(msg: any): Promise<void> {
       figma.ui.postMessage({ type: 'chat-complete' });
       return;
     }
-    // Call ChatGPT API
-    const aiResponse = await callChatGPT(apiKey, msg.message, selectedTextCount);
+    // Call ChatGPT API with optional category
+    const category = msg.category || undefined;
+    const aiResponse = await callChatGPT(apiKey, msg.message, selectedTextCount, category);
     let result;
 
     // Replace text in Figma with the response

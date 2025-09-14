@@ -25,6 +25,42 @@
       margin: 0px;
     }
     
+    /* Category selector styling */
+    .category-selector {
+      margin-bottom: 12px;
+    }
+    
+    .category-label {
+      display: block;
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--figma-color-text);
+      letter-spacing: 1%;
+      margin-bottom: 6px;
+    }
+    
+    .category-dropdown {
+      background-color: var(--figma-color-bg-secondary);
+      border: 1px solid var(--figma-color-border);
+      border-radius: 6px;
+      color: var(--figma-color-text);
+      font-family: Inter, sans-serif;
+      font-size: 12px;
+      padding: 6px 8px;
+      width: 100%;
+      cursor: pointer;
+      transition: border-color 0.2s;
+    }
+    
+    .category-dropdown:focus {
+      outline: none;
+      border-color: var(--figma-color-border-brand);
+    }
+    
+    .category-dropdown:hover {
+      border-color: var(--figma-color-border-hover);
+    }
+    
     /* History section container */
     .history-section {
       margin-top: 16px;
@@ -538,6 +574,25 @@
   <div class="container">
     
     <div class="chat-section">
+      <!-- Category selection dropdown -->
+      <div class="category-selector">
+        <label for="category-dropdown" class="category-label">Content Category:</label>
+        <select id="category-dropdown" class="category-dropdown">
+          <option value="">None (Generic)</option>
+          <option value="emails">Emails</option>
+          <option value="headlines">Headlines</option>
+          <option value="us_phones">US Phone Numbers</option>
+          <option value="addresses">Addresses</option>
+          <option value="dates">Dates</option>
+          <option value="prices">Prices</option>
+          <option value="product_names">Product Names</option>
+          <option value="skus">SKUs</option>
+          <option value="order_ids">Order IDs</option>
+          <option value="times">Times</option>
+          <option value="durations">Durations</option>
+        </select>
+      </div>
+      
       <!-- Chat selection state display (shows how many text elements are selected) -->
       <div class="chat-input-container">
         <!-- Main chat input area (contenteditable for multi-line prompts) -->
@@ -613,31 +668,54 @@
       loadHistory(); // Load history on initialization
       autoResize();
       addEventListeners();
+      loadSelectedCategory(); // Load saved category selection after event listeners are set up
     });
 
     // =========================
     //   DOM ELEMENT SELECTION
     // =========================
-    let chatInput, sendButton, apiKeyStatus, keyIcon, apiKeyModal, apiKeyInput, apiKeyStatusModal, closeModal;
-    let historySection, historyList, clearHistoryBtn;
+    let chatInput, sendButton, apiKeyStatus, keyIcon, apiKeyModal, apiKeyInput, apiKeyStatusModal, closeModal, loadingIndicator;
+    let historySection, historyList, clearHistoryBtn, categoryDropdown;
     let selectedTextCount = 0;
     let currentApiKey = '';
     let apiKeyInputSaveTimeout;
     let historyItems = [];
+    let selectedCategory = '';
 
     function selectDomElements() {
-      chatInput = document.getElementById('chat-input');
-      sendButton = document.getElementById('send-button');
-      loadingIndicator = document.getElementById('loading-indicator');
-      apiKeyStatus = document.getElementById('api-key-status');
-      keyIcon = document.getElementById('key-icon');
-      apiKeyModal = document.getElementById('api-key-modal');
-      apiKeyInput = document.getElementById('api-key-input');
-      apiKeyStatusModal = document.getElementById('api-key-input-status');
-      closeModal = document.getElementById('close-modal');
-      historySection = document.getElementById('history-section');
-      historyList = document.getElementById('history-list');
-      clearHistoryBtn = document.getElementById('clear-history-btn');
+      try {
+        chatInput = document.getElementById('chat-input');
+        sendButton = document.getElementById('send-button');
+        loadingIndicator = document.getElementById('loading-indicator');
+        apiKeyStatus = document.getElementById('api-key-status');
+        keyIcon = document.getElementById('key-icon');
+        apiKeyModal = document.getElementById('api-key-modal');
+        apiKeyInput = document.getElementById('api-key-input');
+        apiKeyStatusModal = document.getElementById('api-key-input-status');
+        closeModal = document.getElementById('close-modal');
+        historySection = document.getElementById('history-section');
+        historyList = document.getElementById('history-list');
+        clearHistoryBtn = document.getElementById('clear-history-btn');
+        categoryDropdown = document.getElementById('category-dropdown');
+        
+        console.log('DOM elements selected:', {
+          chatInput: !!chatInput,
+          sendButton: !!sendButton,
+          loadingIndicator: !!loadingIndicator,
+          apiKeyStatus: !!apiKeyStatus,
+          keyIcon: !!keyIcon,
+          apiKeyModal: !!apiKeyModal,
+          apiKeyInput: !!apiKeyInput,
+          apiKeyStatusModal: !!apiKeyStatusModal,
+          closeModal: !!closeModal,
+          historySection: !!historySection,
+          historyList: !!historyList,
+          clearHistoryBtn: !!clearHistoryBtn,
+          categoryDropdown: !!categoryDropdown
+        });
+      } catch (error) {
+        console.error('Error selecting DOM elements:', error);
+      }
     }
 
     // =========================
@@ -660,8 +738,16 @@
       }
     }
     function updateSendButton() {
-      const hasContent = chatInput.textContent.trim().length > 0;
-      sendButton.disabled = !hasContent || sendButton.classList.contains('loading');
+      try {
+        if (!chatInput || !sendButton) {
+          console.error('chatInput or sendButton not found:', { chatInput: !!chatInput, sendButton: !!sendButton });
+          return;
+        }
+        const hasContent = chatInput.textContent.trim().length > 0;
+        sendButton.disabled = !hasContent || sendButton.classList.contains('loading');
+      } catch (error) {
+        console.error('Error in updateSendButton:', error);
+      }
     }
     function setLoading(loading) {
       if (loading) {
@@ -859,7 +945,8 @@
           parent.postMessage({ 
             pluginMessage: { 
               type: 'send-chat-message',
-              message: message 
+              message: message,
+              category: selectedCategory
             } 
           }, '*');
           chatInput.textContent = '';
@@ -995,12 +1082,42 @@
     }
 
     // =========================
+    //   CATEGORY DROPDOWN LOGIC
+    // =========================
+    function addCategoryDropdownListeners() {
+      try {
+        if (categoryDropdown) {
+          categoryDropdown.addEventListener('change', (e) => {
+            selectedCategory = e.target.value;
+            // Save selected category to localStorage
+            localStorage.setItem('mentarii-selected-category', selectedCategory);
+          });
+        }
+      } catch (error) {
+        console.error('Error adding category dropdown listeners:', error);
+      }
+    }
+
+    function loadSelectedCategory() {
+      try {
+        const savedCategory = localStorage.getItem('mentarii-selected-category');
+        if (savedCategory && categoryDropdown) {
+          selectedCategory = savedCategory;
+          categoryDropdown.value = savedCategory;
+        }
+      } catch (error) {
+        console.error('Error loading selected category:', error);
+      }
+    }
+
+    // =========================
     //   ADD ALL EVENT LISTENERS
     // =========================
     function addEventListeners() {
       addChatInputListeners();
       addApiKeyModalListeners();
       addPluginMessageListeners();
+      addCategoryDropdownListeners();
       clearHistoryBtn.addEventListener('click', clearAllHistory);
     }
   </script>
