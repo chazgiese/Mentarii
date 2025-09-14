@@ -148,11 +148,18 @@ Constraints:
   const schema = {
     name: "TextArray",
     schema: {
-      type: "array",
-      items: { type: "string" },
-      minItems: selectedTextCount,
-      maxItems: selectedTextCount,
-      additionalItems: false
+      type: "object",
+      properties: {
+        items: {
+          type: "array",
+          items: { type: "string" },
+          minItems: selectedTextCount,
+          maxItems: selectedTextCount,
+          additionalItems: false
+        }
+      },
+      required: ["items"],
+      additionalProperties: false
     },
     strict: true
   } as const;
@@ -204,19 +211,29 @@ Constraints:
   }
 
   const data = JSON.parse(rawText);
-  const jsonContent = data.choices?.[0]?.message?.content ?? "[]";
+  const jsonContent = data.choices?.[0]?.message?.content ?? '{"items": []}';
 
-  let arr: unknown;
+  let responseObj: unknown;
   try {
-    arr = JSON.parse(jsonContent);
+    responseObj = JSON.parse(jsonContent);
   } catch {
     throw new Error("Model returned non-JSON despite schema enforcement.");
   }
 
+  // Validate the response structure
   if (
-    !Array.isArray(arr) ||
+    !responseObj ||
+    typeof responseObj !== "object" ||
+    !("items" in responseObj) ||
+    !Array.isArray((responseObj as any).items)
+  ) {
+    throw new Error("Model output failed validation (must be JSON object with 'items' array).");
+  }
+
+  const arr = (responseObj as any).items;
+  if (
     arr.length !== selectedTextCount ||
-    arr.some(v => typeof v !== "string" || !v.trim())
+    arr.some((v: any) => typeof v !== "string" || !v.trim())
   ) {
     throw new Error(
       `Model output failed validation (must be JSON array of exactly ${selectedTextCount} non-empty strings).`
