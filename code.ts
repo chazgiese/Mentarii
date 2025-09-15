@@ -30,6 +30,7 @@ interface HistoryItem {
   textElementCount: number; // Number of text elements it was applied to
   success: boolean; // Whether the operation was successful
   saved: boolean; // Whether the item is saved (protected from clear all)
+  category: string; // Category used for the prompt (e.g., 'emails', 'headlines', etc.)
 }
 
 // Message sent from plugin to UI
@@ -713,7 +714,8 @@ async function handleReapplyHistory(msg: any): Promise<void> {
             timestamp: Date.now(),
             textElementCount: selectedTextCount,
             success: true,
-            saved: false // New items are not saved by default
+            saved: false, // New items are not saved by default
+            category: historyItem.category || '' // Use original category or empty string
           };
           await saveHistoryItem(newHistoryItem);
           
@@ -844,7 +846,8 @@ async function handleSendChatMessage(msg: any): Promise<void> {
           timestamp: Date.now(),
           textElementCount: selectedTextCount,
           success: true,
-          saved: false // New items are not saved by default
+          saved: false, // New items are not saved by default
+          category: msg.category || '' // Include the category used for the prompt
         };
         await saveHistoryItem(historyItem);
         

@@ -865,6 +865,26 @@
       return date.toLocaleDateString();
     }
 
+    function formatCategory(category) {
+      if (!category) return '';
+      
+      const categoryMap = {
+        'emails': 'Emails',
+        'headlines': 'Headlines', 
+        'us_phones': 'US Phone Numbers',
+        'addresses': 'Addresses',
+        'dates': 'Dates',
+        'prices': 'Prices',
+        'product_names': 'Product Names',
+        'skus': 'SKUs',
+        'order_ids': 'Order IDs',
+        'times': 'Times',
+        'durations': 'Durations'
+      };
+      
+      return categoryMap[category] || category;
+    }
+
     function renderHistoryItems() {
       if (historyItems.length === 0) {
         historyList.innerHTML = '<div class="history-empty">No history yet</div>';
@@ -896,7 +916,7 @@
           <div class="history-item-meta">
             <div class="history-item-count">
               <span>${item.response.length} items</span>
-              ${item.textElementCount ? `<span>• ${item.textElementCount} elements</span>` : ''}
+              ${item.category ? `<span>• ${formatCategory(item.category)}</span>` : ''}
               ${item.saved ? '<span>• Saved</span>' : ''}
             </div>
             <div class="history-item-time">${formatTimestamp(item.timestamp)}</div>
