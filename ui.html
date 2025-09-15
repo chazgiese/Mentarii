@@ -27,34 +27,31 @@
     
     /* Category selector styling */
     .category-selector {
-      margin-bottom: 12px;
-      position: relative;
+      position: absolute;
+      left: 40px;
+      bottom: 8px;
     }
     
     .category-label {
-      display: block;
-      font-size: 11px;
-      font-weight: 500;
-      color: var(--figma-color-text);
-      letter-spacing: 1%;
-      margin-bottom: 6px;
+      display: none;
     }
     
     .category-button {
       background-color: var(--figma-color-bg-secondary);
-      border: 1px solid var(--figma-color-border);
-      border-radius: 6px;
+      border: none;
+      border-radius: 16px;
       color: var(--figma-color-text);
       font-family: Inter, sans-serif;
-      font-size: 12px;
-      padding: 6px 8px;
-      width: 100%;
+      font-size: 11px;
+      line-height: 16px;
+      padding: 8px 12px;
+      width: auto;
       cursor: pointer;
-      transition: border-color 0.2s;
       display: flex;
       justify-content: space-between;
       align-items: center;
       text-align: left;
+      gap: 4px;
     }
     
     .category-button:focus {
@@ -63,7 +60,7 @@
     }
     
     .category-button:hover {
-      border-color: var(--figma-color-border-hover);
+      background-color: var(--figma-color-bg-tertiary);
     }
     
     .category-button:active {
@@ -71,22 +68,17 @@
     }
     
     .category-arrow {
-      transition: transform 0.2s;
       fill: var(--figma-color-text);
-    }
-    
-    .category-button.open .category-arrow {
-      transform: rotate(180deg);
     }
     
     .category-dropdown {
       position: absolute;
-      top: 100%;
+      top: calc(100% + 4px);
       left: 0;
-      right: 0;
-      background-color: var(--figma-color-bg-secondary);
-      border: 1px solid var(--figma-color-border);
+      width: 144px;
+      background-color: #1e1e1e;
       border-radius: 6px;
+      padding: 8px;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
       z-index: 1000;
       max-height: 200px;
@@ -99,37 +91,24 @@
     }
     
     .category-option {
-      padding: 8px 12px;
+      padding: 4px 12px;
       cursor: pointer;
-      font-size: 12px;
+      font-size: 11px;
+      border-radius: 4px;
+      line-height: 16px;
       color: var(--figma-color-text);
-      transition: background-color 0.2s;
-      border-bottom: 1px solid var(--figma-color-border);
-    }
-    
-    .category-option:last-child {
-      border-bottom: none;
     }
     
     .category-option:hover {
-      background-color: var(--figma-color-bg-hover);
+      background-color: var(--figma-color-bg-brand);
+      color: var(--figma-color-text-on-brand);
     }
     
     .category-option.selected {
-      background-color: var(--figma-color-bg-brand-soft);
-      color: var(--figma-color-text-brand);
+      background-color: var(--figma-color-bg-brand);
+      color: var(--figma-color-text-on-brand);
     }
     
-    .category-option.focused {
-      background-color: var(--figma-color-bg-hover);
-      outline: 2px solid var(--figma-color-border-brand);
-      outline-offset: -2px;
-    }
-    
-    .category-option:focus {
-      outline: 2px solid var(--figma-color-border-brand);
-      outline-offset: -2px;
-    }
     
     /* History section container */
     .history-section {
@@ -160,7 +139,6 @@
       cursor: pointer;
       padding: 4px 8px;
       border-radius: 4px;
-      transition: background-color 0.2s;
     }
     
     .history-clear-btn:hover {
@@ -168,8 +146,6 @@
     }
     
     .history-list {
-      max-height: 200px;
-      overflow-y: auto;
       display: flex;
       flex-direction: column;
       gap: 8px;
@@ -223,17 +199,19 @@
     .history-item-delete {
       background: none;
       border: none;
-      color: var(--figma-color-text-secondary);
       cursor: pointer;
       padding: 2px;
       border-radius: 2px;
-      font-size: 10px;
+      font-size: 11px;
       min-width: 16px;
       height: 16px;
       display: flex;
       align-items: center;
       justify-content: center;
       transition: background-color 0.2s;
+    }
+    .history-item-delete svg {
+      fill: var(--figma-color-text-secondary);
     }
     
     .history-item-delete:hover {
@@ -497,7 +475,6 @@
       border-radius: 4px;
       border-radius: 8px;
       display: none;
-      display: none;
       font-size: 12px;
       height: 16px;
       justify-content: center;
@@ -644,30 +621,6 @@
   <div class="container">
     
     <div class="chat-section">
-      <!-- Category selection dropdown -->
-      <div class="category-selector">
-        <label for="category-button" class="category-label">Content Category:</label>
-        <button id="category-button" class="category-button" type="button" aria-haspopup="listbox" aria-expanded="false">
-          <span id="category-button-text">None (Generic)</span>
-          <svg class="category-arrow" width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-        </button>
-        <div id="category-dropdown" class="category-dropdown" role="listbox" aria-labelledby="category-button">
-          <div class="category-option" data-value="" role="option" tabindex="0">None (Generic)</div>
-          <div class="category-option" data-value="emails" role="option" tabindex="0">Emails</div>
-          <div class="category-option" data-value="headlines" role="option" tabindex="0">Headlines</div>
-          <div class="category-option" data-value="us_phones" role="option" tabindex="0">US Phone Numbers</div>
-          <div class="category-option" data-value="addresses" role="option" tabindex="0">Addresses</div>
-          <div class="category-option" data-value="dates" role="option" tabindex="0">Dates</div>
-          <div class="category-option" data-value="prices" role="option" tabindex="0">Prices</div>
-          <div class="category-option" data-value="product_names" role="option" tabindex="0">Product Names</div>
-          <div class="category-option" data-value="skus" role="option" tabindex="0">SKUs</div>
-          <div class="category-option" data-value="order_ids" role="option" tabindex="0">Order IDs</div>
-          <div class="category-option" data-value="times" role="option" tabindex="0">Times</div>
-          <div class="category-option" data-value="durations" role="option" tabindex="0">Durations</div>
-        </div>
-      </div>
       
       <!-- Chat selection state display (shows how many text elements are selected) -->
       <div class="chat-input-container">
@@ -682,6 +635,33 @@
         <button class="chat-button" id="key-icon" title="Set API Key">
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M2.5 5.49998H4.5625C4.67265 5.93019 4.92285 6.3115 5.27365 6.5838C5.62446 6.85611 6.05591 7.00391 6.5 7.00391C6.94409 7.00391 7.37554 6.85611 7.72635 6.5838C8.07715 6.3115 8.32735 5.93019 8.4375 5.49998H13.5C13.6326 5.49998 13.7598 5.44731 13.8536 5.35354C13.9473 5.25977 14 5.13259 14 4.99998C14 4.86738 13.9473 4.7402 13.8536 4.64643C13.7598 4.55266 13.6326 4.49998 13.5 4.49998H8.4375C8.32735 4.06978 8.07715 3.68847 7.72635 3.41617C7.37554 3.14386 6.94409 2.99606 6.5 2.99606C6.05591 2.99606 5.62446 3.14386 5.27365 3.41617C4.92285 3.68847 4.67265 4.06978 4.5625 4.49998H2.5C2.36739 4.49998 2.24021 4.55266 2.14645 4.64643C2.05268 4.7402 2 4.86738 2 4.99998C2 5.13259 2.05268 5.25977 2.14645 5.35354C2.24021 5.44731 2.36739 5.49998 2.5 5.49998ZM6.5 3.99998C6.69778 3.99998 6.89112 4.05863 7.05557 4.16852C7.22002 4.2784 7.34819 4.43458 7.42388 4.6173C7.49957 4.80003 7.51937 5.00109 7.48079 5.19508C7.4422 5.38906 7.34696 5.56724 7.20711 5.70709C7.06725 5.84694 6.88907 5.94219 6.69509 5.98077C6.50111 6.01936 6.30004 5.99955 6.11732 5.92386C5.93459 5.84818 5.77841 5.72 5.66853 5.55556C5.55865 5.39111 5.5 5.19777 5.5 4.99998C5.5 4.73477 5.60536 4.48041 5.79289 4.29288C5.98043 4.10534 6.23478 3.99998 6.5 3.99998ZM13.5 10.5H12.4375C12.3273 10.0698 12.0771 9.68847 11.7263 9.41617C11.3755 9.14386 10.9441 8.99606 10.5 8.99606C10.0559 8.99606 9.62446 9.14386 9.27365 9.41617C8.92285 9.68847 8.67265 10.0698 8.5625 10.5H2.5C2.36739 10.5 2.24021 10.5527 2.14645 10.6464C2.05268 10.7402 2 10.8674 2 11C2 11.1326 2.05268 11.2598 2.14645 11.3535C2.24021 11.4473 2.36739 11.5 2.5 11.5H8.5625C8.67265 11.9302 8.92285 12.3115 9.27365 12.5838C9.62446 12.8561 10.0559 13.0039 10.5 13.0039C10.9441 13.0039 11.3755 12.8561 11.7263 12.5838C12.0771 12.3115 12.3273 11.9302 12.4375 11.5H13.5C13.6326 11.5 13.7598 11.4473 13.8536 11.3535C13.9473 11.2598 14 11.1326 14 11C14 10.8674 13.9473 10.7402 13.8536 10.6464C13.7598 10.5527 13.6326 10.5 13.5 10.5ZM10.5 12C10.3022 12 10.1089 11.9413 9.94443 11.8315C9.77998 11.7216 9.65181 11.5654 9.57612 11.3827C9.50043 11.1999 9.48063 10.9989 9.51921 10.8049C9.5578 10.6109 9.65304 10.4327 9.79289 10.2929C9.93275 10.153 10.1109 10.0578 10.3049 10.0192C10.4989 9.98061 10.7 10.0004 10.8827 10.0761C11.0654 10.1518 11.2216 10.28 11.3315 10.4444C11.4414 10.6089 11.5 10.8022 11.5 11C11.5 11.2652 11.3946 11.5196 11.2071 11.7071C11.0196 11.8946 10.7652 12 10.5 12Z" fill="inherit"/></svg><div class="api-key-status" id="api-key-status"></div>
         </button>
+
+        <!-- Category selection dropdown -->
+        <div class="category-selector">
+          <label for="category-button" class="category-label">Content Category:</label>
+          <button id="category-button" class="category-button" type="button">
+            <span id="category-button-text">Generic</span>
+            <svg class="category-arrow" width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M2.14651 4.14651C1.95125 4.34177 1.95125 4.65828 2.14651 4.85354L5.64651 8.35354C5.84177 8.5488 6.15828 8.5488 6.35354 8.35354L9.85354 4.85354C10.0488 4.65828 10.0488 4.34177 9.85354 4.14651C9.65828 3.95125 9.34177 3.95125 9.14651 4.14651L6.00002 7.29299L2.85354 4.14651C2.65828 3.95125 2.34177 3.95125 2.14651 4.14651Z" fill="inherit"/>
+              </svg>
+              
+          </button>
+          <div id="category-dropdown" class="category-dropdown">
+            <div class="category-option" data-value="">Generic</div>
+            <div class="category-option" data-value="addresses">Addresses</div>
+            <div class="category-option" data-value="dates">Dates</div>
+            <div class="category-option" data-value="durations">Durations</div>
+            <div class="category-option" data-value="emails">Emails</div>
+            <div class="category-option" data-value="headlines">Headlines</div>
+            <div class="category-option" data-value="prices">Prices</div>
+            <div class="category-option" data-value="product_names">Product Names</div>
+            <div class="category-option" data-value="order_ids">Order IDs</div>
+            <div class="category-option" data-value="skus">SKUs</div>
+            <div class="category-option" data-value="times">Times</div>
+            <div class="category-option" data-value="us_phones">US Phone Numbers</div>
+          </div>
+        </div>
+
         <!-- Send button (triggers prompt submission) -->
         <button class="send-button" id="send-button" disabled aria-label="Send">
           <svg id="send-arrow" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M13.0306 7.53065C12.9609 7.60057 12.8781 7.65605 12.787 7.6939C12.6958 7.73176 12.5981 7.75124 12.4993 7.75124C12.4006 7.75124 12.3029 7.73176 12.2117 7.6939C12.1206 7.65605 12.0378 7.60057 11.9681 7.53065L8.74997 4.31253V13.5C8.74997 13.6989 8.67095 13.8897 8.5303 14.0304C8.38965 14.171 8.19888 14.25 7.99997 14.25C7.80106 14.25 7.61029 14.171 7.46964 14.0304C7.32899 13.8897 7.24997 13.6989 7.24997 13.5V4.31253L4.0306 7.53065C3.8897 7.67155 3.69861 7.7507 3.49935 7.7507C3.30009 7.7507 3.10899 7.67155 2.9681 7.53065C2.8272 7.38975 2.74805 7.19866 2.74805 6.9994C2.74805 6.80014 2.8272 6.60905 2.9681 6.46815L7.4681 1.96815C7.53778 1.89823 7.62057 1.84275 7.71173 1.8049C7.8029 1.76704 7.90064 1.74756 7.99935 1.74756C8.09806 1.74756 8.1958 1.76704 8.28696 1.8049C8.37813 1.84275 8.46092 1.89823 8.5306 1.96815L13.0306 6.46815C13.1005 6.53783 13.156 6.62062 13.1938 6.71179C13.2317 6.80295 13.2512 6.90069 13.2512 6.9994C13.2512 7.09811 13.2317 7.19585 13.1938 7.28701C13.156 7.37818 13.1005 7.46097 13.0306 7.53065Z" fill="inherit"/></svg>
@@ -758,7 +738,6 @@
     let historyItems = [];
     let selectedCategory = '';
     let isDropdownOpen = false;
-    let currentFocusedIndex = -1;
 
     function selectDomElements() {
       try {
@@ -911,7 +890,7 @@
               <button class="history-item-save ${item.saved ? 'saved' : ''}" data-history-id="${item.id}" title="${item.saved ? 'Unsave' : 'Save'}">
                 ${item.saved ? '★' : '☆'}
               </button>
-              <button class="history-item-delete" data-history-id="${item.id}" title="Delete">×</button>
+              <button class="history-item-delete" data-history-id="${item.id}" title="Delete"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M9.14652 2.14651C9.34177 1.95126 9.65829 1.95128 9.85355 2.14651C10.0488 2.34177 10.0488 2.65829 9.85355 2.85354L6.70707 6.00002L9.85355 9.14651C10.0488 9.34177 10.0488 9.65829 9.85355 9.85354C9.65831 10.0488 9.34179 10.0487 9.14652 9.85354L6.00004 6.70705L2.85355 9.85354C2.6583 10.0488 2.34178 10.0488 2.14652 9.85354C1.95127 9.65828 1.95127 9.34177 2.14652 9.14651L5.29301 6.00002L2.14652 2.85354C1.95126 2.65828 1.95126 2.34177 2.14652 2.14651C2.34178 1.95125 2.65829 1.95125 2.85355 2.14651L6.00004 5.29299L9.14652 2.14651Z" fill="inherit"/></svg></button>
             </div>
           </div>
           <div class="history-item-meta">
@@ -1177,15 +1156,11 @@
 
           // Option selection
           const options = categoryDropdown.querySelectorAll('.category-option');
-          options.forEach((option, index) => {
+          options.forEach((option) => {
             option.addEventListener('click', (e) => {
+              e.preventDefault();
               e.stopPropagation();
-              selectOption(option, index);
-            });
-
-            // Mouse hover for visual feedback
-            option.addEventListener('mouseenter', () => {
-              updateFocusedOption(index);
+              selectOption(option);
             });
           });
 
@@ -1195,10 +1170,6 @@
               closeDropdown();
             }
           });
-
-          // Keyboard navigation
-          categoryButton.addEventListener('keydown', handleButtonKeydown);
-          categoryDropdown.addEventListener('keydown', handleDropdownKeydown);
         }
       } catch (error) {
         console.error('Error adding category dropdown listeners:', error);
@@ -1216,36 +1187,16 @@
     function openDropdown() {
       isDropdownOpen = true;
       categoryButton.classList.add('open');
-      categoryButton.setAttribute('aria-expanded', 'true');
       categoryDropdown.classList.add('open');
-      
-      // Focus the first option or currently selected option
-      const options = categoryDropdown.querySelectorAll('.category-option');
-      const selectedOption = categoryDropdown.querySelector('.category-option.selected');
-      if (selectedOption) {
-        currentFocusedIndex = Array.from(options).indexOf(selectedOption);
-      } else {
-        currentFocusedIndex = 0;
-      }
-      updateFocusedOption(currentFocusedIndex);
     }
 
     function closeDropdown() {
       isDropdownOpen = false;
       categoryButton.classList.remove('open');
-      categoryButton.setAttribute('aria-expanded', 'false');
       categoryDropdown.classList.remove('open');
-      currentFocusedIndex = -1;
-      
-      // Remove focus from all options
-      const options = categoryDropdown.querySelectorAll('.category-option');
-      options.forEach(option => {
-        option.classList.remove('focused');
-        option.setAttribute('tabindex', '-1');
-      });
     }
 
-    function selectOption(option, index) {
+    function selectOption(option) {
       const value = option.dataset.value;
       const text = option.textContent;
       
@@ -1260,88 +1211,35 @@
       options.forEach(opt => opt.classList.remove('selected'));
       option.classList.add('selected');
       
-      // Save to localStorage
-      localStorage.setItem('mentarii-selected-category', selectedCategory);
+      // Save to localStorage (with error handling)
+      try {
+        localStorage.setItem('mentarii-selected-category', selectedCategory);
+      } catch (error) {
+        console.warn('localStorage not available:', error.message);
+      }
       
-      // Close dropdown
+      // Close dropdown immediately
       closeDropdown();
-      
-      // Return focus to button
-      categoryButton.focus();
     }
 
-    function updateFocusedOption(index) {
-      const options = categoryDropdown.querySelectorAll('.category-option');
-      
-      // Remove focus from all options
-      options.forEach(option => {
-        option.classList.remove('focused');
-        option.setAttribute('tabindex', '-1');
-      });
-      
-      // Add focus to current option
-      if (index >= 0 && index < options.length) {
-        const option = options[index];
-        option.classList.add('focused');
-        option.setAttribute('tabindex', '0');
-        option.focus();
-        currentFocusedIndex = index;
-      }
-    }
-
-    function handleButtonKeydown(e) {
-      if (e.key === 'Enter' || e.key === ' ' || e.key === 'ArrowDown') {
-        e.preventDefault();
-        if (!isDropdownOpen) {
-          openDropdown();
-        } else if (e.key === 'ArrowDown') {
-          updateFocusedOption(0);
-        }
-      } else if (e.key === 'Escape') {
-        closeDropdown();
-      }
-    }
-
-    function handleDropdownKeydown(e) {
-      const options = categoryDropdown.querySelectorAll('.category-option');
-      
-      switch (e.key) {
-        case 'ArrowDown':
-          e.preventDefault();
-          const nextIndex = currentFocusedIndex < options.length - 1 ? currentFocusedIndex + 1 : 0;
-          updateFocusedOption(nextIndex);
-          break;
-        case 'ArrowUp':
-          e.preventDefault();
-          const prevIndex = currentFocusedIndex > 0 ? currentFocusedIndex - 1 : options.length - 1;
-          updateFocusedOption(prevIndex);
-          break;
-        case 'Enter':
-        case ' ':
-          e.preventDefault();
-          if (currentFocusedIndex >= 0 && currentFocusedIndex < options.length) {
-            selectOption(options[currentFocusedIndex], currentFocusedIndex);
-          }
-          break;
-        case 'Escape':
-          e.preventDefault();
-          closeDropdown();
-          categoryButton.focus();
-          break;
-        case 'Tab':
-          closeDropdown();
-          break;
-      }
-    }
 
     function loadSelectedCategory() {
       try {
-        const savedCategory = localStorage.getItem('mentarii-selected-category');
+        let savedCategory = null;
+        
+        // Try to get saved category from localStorage
+        try {
+          savedCategory = localStorage.getItem('mentarii-selected-category');
+        } catch (error) {
+          console.warn('localStorage not available:', error.message);
+        }
+        
+        const options = categoryDropdown.querySelectorAll('.category-option');
+        
         if (savedCategory && categoryDropdown) {
           selectedCategory = savedCategory;
           
           // Find and select the corresponding option
-          const options = categoryDropdown.querySelectorAll('.category-option');
           const targetOption = Array.from(options).find(option => option.dataset.value === savedCategory);
           
           if (targetOption) {
@@ -1351,6 +1249,18 @@
             // Update visual selection
             options.forEach(opt => opt.classList.remove('selected'));
             targetOption.classList.add('selected');
+          }
+        } else {
+          // Set default selection to first option if no saved category
+          selectedCategory = '';
+          if (options.length > 0) {
+            const firstOption = options[0];
+            const text = firstOption.textContent;
+            categoryButtonText.textContent = text;
+            
+            // Update visual selection
+            options.forEach(opt => opt.classList.remove('selected'));
+            firstOption.classList.add('selected');
           }
         }
       } catch (error) {
