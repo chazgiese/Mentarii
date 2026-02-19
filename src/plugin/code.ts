@@ -874,11 +874,36 @@ async function handleSendChatMessage(msg: any): Promise<void> {
   }
 }
 
-/**
- * Main message handler for all plugin messages from the UI.
- * Routes messages to the appropriate handler based on type.
- * @param msg The PluginMessage from the UI.
- */
+async function handleClearSaved(): Promise<void> {
+  try {
+    const savedHistory: HistoryItem[] = await figma.clientStorage.getAsync(SAVED_HISTORY_STORAGE_KEY) || [];
+    if (savedHistory.length === 0) {
+      sendToastToUI('No saved items to clear', 'success');
+      return;
+    }
+    const unsaved = savedHistory.map(item => ({ ...item, saved: false }));
+    const regularHistory: HistoryItem[] = await figma.clientStorage.getAsync(HISTORY_STORAGE_KEY) || [];
+    const merged = [...unsaved, ...regularHistory].slice(0, MAX_HISTORY_ITEMS);
+    await figma.clientStorage.setAsync(HISTORY_STORAGE_KEY, merged);
+    await figma.clientStorage.setAsync(SAVED_HISTORY_STORAGE_KEY, []);
+    await handleGetHistory();
+    sendToastToUI('Saved items cleared', 'success');
+  } catch (error) {
+    console.error('Error clearing saved items:', error);
+  }
+}
+
+async function handleDeleteAll(): Promise<void> {
+  try {
+    await figma.clientStorage.setAsync(HISTORY_STORAGE_KEY, []);
+    await figma.clientStorage.setAsync(SAVED_HISTORY_STORAGE_KEY, []);
+    figma.ui.postMessage({ type: 'history-loaded', history: [] });
+    sendToastToUI('All history and saved items deleted', 'success');
+  } catch (error) {
+    console.error('Error deleting all:', error);
+  }
+}
+
 async function handleMessage(msg: PluginMessage): Promise<void> {
   switch (msg.type) {
     case 'get-selection-count':
@@ -916,6 +941,14 @@ async function handleMessage(msg: PluginMessage): Promise<void> {
     case 'toggle-history-saved':
       await handleToggleHistorySaved(msg);
       break;
+
+    case 'clear-saved':
+      await handleClearSaved();
+      break;
+
+    case 'delete-all':
+      await handleDeleteAll();
+      break;
       
     case 'deselect-all':
       figma.currentPage.selection = [];
@@ -941,7 +974,7 @@ async function handleMessage(msg: PluginMessage): Promise<void> {
 // Initialize the plugin UI with specified dimensions and theme support
 figma.showUI(__html__, { 
   width: 400, 
-  height: 400,
+  height: 500,
   themeColors: true
 });
 

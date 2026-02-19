@@ -2,14 +2,25 @@
   "name": "mentarii",
   "version": "1.0.0",
   "description": "Mentarii: An AI-powered ghostwriter plugin for Figma that generates text content using OpenAI's ChatGPT API.",
-  "main": "dist/code.js",
+  "type": "module",
   "scripts": {
-    "build": "tsc",
-    "dev": "tsc --watch",
+    "build": "pnpm run build:plugin && pnpm run build:ui",
+    "build:plugin": "tsc -p tsconfig.plugin.json",
+    "build:ui": "vite build",
+    "dev": "pnpm run build:plugin && vite build --watch",
     "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
   },
   "devDependencies": {
     "@figma/plugin-typings": "^1.65.0",
-    "typescript": "^5.0.0"
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "@vitejs/plugin-react": "^4.3.4",
+    "typescript": "^5.0.0",
+    "vite": "^5.4.11",
+    "vite-plugin-singlefile": "^2.0.2"
   }
 }
