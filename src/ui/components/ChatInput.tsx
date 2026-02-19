@@ -1,4 +1,15 @@
-import { useRef, useState, useEffect, useCallback, KeyboardEvent } from 'react';
+import { useRef, useState, useEffect, useCallback, KeyboardEvent, type ComponentType } from 'react';
+import {
+  MapPin,
+  AtSign,
+  Text,
+  CurrencyDollar,
+  Clock,
+  DevicePhone,
+  XCircle,
+  Plus,
+  ArrowUp,
+} from 'stera-icons';
 
 interface ChatInputProps {
   onSend: (message: string, category: string) => void;
@@ -16,76 +27,19 @@ const CATEGORIES: Array<{ value: string; label: string; icon: string }> = [
   { value: 'us_phones', label: 'Phone number', icon: 'phone' },
 ];
 
+const CATEGORY_ICON_MAP: Record<string, ComponentType<{ size?: number }>> = {
+  'map-pin': MapPin,
+  'at-sign': AtSign,
+  text: Text,
+  dollar: CurrencyDollar,
+  clock: Clock,
+  phone: DevicePhone,
+};
+
 function CategoryIcon({ icon, size = 16 }: { icon: string; size?: number }) {
-  const s = String(size);
-  switch (icon) {
-    case 'map-pin':
-      return (
-        <svg width={s} height={s} viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M8 8.667a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
-          <path d="M8 14s4.667-3.067 4.667-7.333a4.667 4.667 0 0 0-9.334 0C3.333 10.933 8 14 8 14Z" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
-        </svg>
-      );
-    case 'at-sign':
-      return (
-        <svg width={s} height={s} viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M10.667 5.333v3.334a1.667 1.667 0 0 0 3.333 0 6 6 0 1 0-2.4 4.8" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
-          <path d="M8 10.667a2.667 2.667 0 1 0 0-5.334 2.667 2.667 0 0 0 0 5.334Z" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
-        </svg>
-      );
-    case 'text':
-      return (
-        <svg width={s} height={s} viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M3.333 4h9.334M5.333 8h5.334M6.333 12h3.334" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
-        </svg>
-      );
-    case 'dollar':
-      return (
-        <svg width={s} height={s} viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M8 2v12M11.333 5.333H6.333a2 2 0 0 0 0 4h3.334a2 2 0 0 1 0 4H4.667" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
-        </svg>
-      );
-    case 'clock':
-      return (
-        <svg width={s} height={s} viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <circle cx="8" cy="8" r="5.333" stroke="currentColor" strokeWidth="1.2"/>
-          <path d="M8 5.333V8l2 1.333" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
-        </svg>
-      );
-    case 'phone':
-      return (
-        <svg width={s} height={s} viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M14 11.28v1.747a1.165 1.165 0 0 1-1.27 1.165 11.528 11.528 0 0 1-5.027-1.788 11.363 11.363 0 0 1-3.5-3.5A11.528 11.528 0 0 1 2.415 3.87 1.165 1.165 0 0 1 3.573 2.6h1.747a1.165 1.165 0 0 1 1.165 1.002c.074.556.21 1.101.408 1.626a1.165 1.165 0 0 1-.262 1.23l-.74.74a9.325 9.325 0 0 0 3.5 3.5l.74-.74a1.165 1.165 0 0 1 1.23-.262c.525.197 1.07.334 1.627.408A1.165 1.165 0 0 1 14 11.28Z" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
-        </svg>
-      );
-    default:
-      return null;
-  }
-}
-
-function XCircleIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="8" cy="8" r="5.333" stroke="currentColor" strokeWidth="1.2"/>
-      <path d="M9.887 6.113 6.113 9.887M6.113 6.113l3.774 3.774" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
-    </svg>
-  );
-}
-
-function PlusIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M8 3.333v9.334M3.333 8h9.334" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-    </svg>
-  );
-}
-
-function ArrowUpIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M8 13V3M3.5 7.5 8 3l4.5 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-    </svg>
-  );
+  const IconComponent = CATEGORY_ICON_MAP[icon];
+  if (!IconComponent) return null;
+  return <IconComponent size={size} />;
 }
 
 function ChatInput({
@@ -184,11 +138,11 @@ function ChatInput({
           >
             {selectedCategory && activeCategory ? (
               <>
-                {categoryHovered ? <XCircleIcon /> : <CategoryIcon icon={activeCategory.icon} />}
+                {categoryHovered ? <XCircle size={16} /> : <CategoryIcon icon={activeCategory.icon} />}
                 <span className="category-btn-label">{activeCategory.label}</span>
               </>
             ) : (
-              <PlusIcon />
+              <Plus size={16} />
             )}
           </button>
 
@@ -218,7 +172,7 @@ function ChatInput({
             {loading ? (
               <div className="send-spinner" />
             ) : (
-              <ArrowUpIcon />
+              <ArrowUp size={16} />
             )}
           </button>
         </div>

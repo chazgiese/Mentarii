@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import { Copy, RotateLeft, Heart, HeartFill, ChevronsLeftRightEllipsis } from 'stera-icons';
 import { HistoryItem as HistoryItemType, CATEGORY_DISPLAY_NAMES } from '../types';
 
 interface HistoryItemProps {
@@ -31,50 +32,6 @@ function formatTimestamp(timestamp: number): string {
 function formatCategory(category: string): string {
   if (!category) return '';
   return CATEGORY_DISPLAY_NAMES[category as keyof typeof CATEGORY_DISPLAY_NAMES] || category;
-}
-
-function CopyIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <rect x="5.333" y="5.333" width="7.333" height="7.333" rx="1.2" stroke="currentColor" strokeWidth="1.2"/>
-      <path d="M3.333 10.667V4a1.333 1.333 0 0 1 1.334-1.333h6.666" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
-    </svg>
-  );
-}
-
-function ReapplyIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M4 6.667h6a2.667 2.667 0 0 1 0 5.333H8" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
-      <path d="M6.667 9.333 4 6.667 6.667 4" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
-    </svg>
-  );
-}
-
-function HeartOutlineIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M8 13.533l-.593-.533C4.453 10.32 2.667 8.707 2.667 6.727c0-1.614 1.266-2.86 2.893-2.86.92 0 1.8.427 2.44 1.1.64-.673 1.52-1.1 2.44-1.1 1.627 0 2.893 1.246 2.893 2.86 0 1.98-1.786 3.593-4.74 6.28L8 13.533Z" stroke="currentColor" strokeWidth="1.2"/>
-    </svg>
-  );
-}
-
-function HeartFilledIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M8 13.533l-.593-.533C4.453 10.32 2.667 8.707 2.667 6.727c0-1.614 1.266-2.86 2.893-2.86.92 0 1.8.427 2.44 1.1.64-.673 1.52-1.1 2.44-1.1 1.627 0 2.893 1.246 2.893 2.86 0 1.98-1.786 3.593-4.74 6.28L8 13.533Z" fill="currentColor" stroke="currentColor" strokeWidth="1.2"/>
-    </svg>
-  );
-}
-
-function MoreIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="8" cy="4" r="1" fill="currentColor"/>
-      <circle cx="8" cy="8" r="1" fill="currentColor"/>
-      <circle cx="8" cy="12" r="1" fill="currentColor"/>
-    </svg>
-  );
 }
 
 interface TooltipButtonProps {
@@ -154,17 +111,17 @@ function HistoryItem({ item, onReapply, onDelete, onToggleSaved, onCopyPrompt }:
       <div className="story-actions">
         <div className="story-action-btns">
           <TooltipButton tooltip="Copy prompt" onClick={handleCopy}>
-            <CopyIcon />
+            <Copy size={16} />
           </TooltipButton>
           <TooltipButton tooltip="Re-apply text" onClick={handleReapply}>
-            <ReapplyIcon />
+            <RotateLeft size={16} />
           </TooltipButton>
           <TooltipButton tooltip={item.saved ? 'Unsave' : 'Save'} onClick={handleToggleSaved}>
-            {item.saved ? <HeartFilledIcon /> : <HeartOutlineIcon />}
+            {item.saved ? <HeartFill size={16} /> : <Heart size={16} />}
           </TooltipButton>
           <div className="tooltip-btn-wrap" ref={moreRef}>
             <TooltipButton tooltip="More actions" onClick={handleMore} active={moreOpen}>
-              <MoreIcon />
+              <ChevronsLeftRightEllipsis size={16} />
             </TooltipButton>
             {moreOpen && (
               <div className="more-dropdown">
