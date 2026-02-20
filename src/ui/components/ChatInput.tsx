@@ -6,9 +6,10 @@ import {
   CurrencyDollar,
   Clock,
   DevicePhone,
-  XCircle,
+  XCircleFill,
   Plus,
   ArrowUp,
+  CircleNotchFillDuotone,
 } from 'stera-icons';
 
 interface ChatInputProps {
@@ -138,7 +139,7 @@ function ChatInput({
           >
             {selectedCategory && activeCategory ? (
               <>
-                {categoryHovered ? <XCircle size={16} /> : <CategoryIcon icon={activeCategory.icon} />}
+                {categoryHovered ? <XCircleFill size={16} /> : <CategoryIcon icon={activeCategory.icon} />}
                 <span className="category-btn-label">{activeCategory.label}</span>
               </>
             ) : (
@@ -170,7 +171,7 @@ function ChatInput({
             aria-label="Send"
           >
             {loading ? (
-              <div className="send-spinner" />
+              <CircleNotchFillDuotone size={16} className="send-spinner-icon" />
             ) : (
               <ArrowUp size={16} />
             )}

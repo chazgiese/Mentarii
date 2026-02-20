@@ -1,5 +1,6 @@
-import { useState, useRef, useEffect } from 'react';
-import { Copy, RotateLeft, Heart, HeartFill, ChevronsLeftRightEllipsis } from 'stera-icons';
+import { useState, useRef, useEffect, useLayoutEffect } from 'react';
+import { createPortal } from 'react-dom';
+import { Copy, ArrowULeft, Heart, HeartFill, More } from 'stera-icons';
 import { HistoryItem as HistoryItemType, CATEGORY_DISPLAY_NAMES } from '../types';
 
 interface HistoryItemProps {
@@ -42,11 +43,59 @@ interface TooltipButtonProps {
   className?: string;
 }
 
+const TOOLTIP_OFFSET = 4;
+const TOOLTIP_PADDING = 8;
+const DROPDOWN_OFFSET = 4;
+const DROPDOWN_ESTIMATE_HEIGHT = 80;
+
 function TooltipButton({ tooltip, onClick, active, children, className = '' }: TooltipButtonProps) {
   const [hovered, setHovered] = useState(false);
+  const [tooltipStyle, setTooltipStyle] = useState<React.CSSProperties>({});
+  const wrapRef = useRef<HTMLDivElement>(null);
+
+  useLayoutEffect(() => {
+    if (!hovered || !wrapRef.current) return;
+
+    const updatePosition = () => {
+      if (!wrapRef.current) return;
+      const rect = wrapRef.current.getBoundingClientRect();
+      const tooltipHeight = 24;
+      const viewportPadding = TOOLTIP_PADDING;
+
+      let top: number;
+      const preferBelow = rect.bottom + TOOLTIP_OFFSET + tooltipHeight <= window.innerHeight - viewportPadding;
+      if (preferBelow) {
+        top = rect.bottom + TOOLTIP_OFFSET;
+      } else {
+        top = rect.top - TOOLTIP_OFFSET - tooltipHeight;
+      }
+
+      let left = rect.left + rect.width / 2;
+      const minLeft = viewportPadding;
+      const maxLeft = window.innerWidth - viewportPadding;
+      left = Math.min(maxLeft, Math.max(minLeft, left));
+
+      setTooltipStyle({
+        position: 'fixed',
+        left,
+        top,
+        transform: 'translate(-50%, 0)',
+      });
+    };
+
+    updatePosition();
+    const contentArea = document.querySelector('.content-area');
+    const onScrollOrResize = () => updatePosition();
+    window.addEventListener('resize', onScrollOrResize);
+    contentArea?.addEventListener('scroll', onScrollOrResize);
+    return () => {
+      window.removeEventListener('resize', onScrollOrResize);
+      contentArea?.removeEventListener('scroll', onScrollOrResize);
+    };
+  }, [hovered]);
 
   return (
-    <div className="tooltip-btn-wrap">
+    <div className="tooltip-btn-wrap" ref={wrapRef}>
       <button
         className={`story-action-btn ${active ? 'active' : ''} ${className}`}
         onClick={onClick}
@@ -55,26 +104,129 @@ function TooltipButton({ tooltip, onClick, active, children, className = '' }: T
       >
         {children}
       </button>
-      {hovered && <div className="tooltip">{tooltip}</div>}
+      {hovered &&
+        createPortal(
+          <div className="tooltip tooltip-portal" style={tooltipStyle}>
+            {tooltip}
+          </div>,
+          document.body
+        )}
+    </div>
+  );
+}
+
+interface MoreButtonProps {
+  timestamp: number;
+  onDelete: (e: React.MouseEvent) => void;
+}
+
+function MoreButton({ timestamp, onDelete }: MoreButtonProps) {
+  const [open, setOpen] = useState(false);
+  const wrapRef = useRef<HTMLDivElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const [dropdownStyle, setDropdownStyle] = useState<React.CSSProperties>({});
+
+  useEffect(() => {
+    if (!open) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as Node;
+      if (
+        wrapRef.current?.contains(target) ||
+        dropdownRef.current?.contains(target)
+      ) {
+        return;
+      }
+      setOpen(false);
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [open]);
+
+  useLayoutEffect(() => {
+    if (!open || !wrapRef.current) return;
+
+    const updatePosition = () => {
+      if (!wrapRef.current) return;
+      const rect = wrapRef.current.getBoundingClientRect();
+      const viewportPadding = TOOLTIP_PADDING;
+
+      let top: number;
+      const preferBelow =
+        rect.bottom + DROPDOWN_OFFSET + DROPDOWN_ESTIMATE_HEIGHT <=
+        window.innerHeight - viewportPadding;
+      if (preferBelow) {
+        top = Math.min(
+          window.innerHeight - viewportPadding - DROPDOWN_ESTIMATE_HEIGHT,
+          rect.bottom + DROPDOWN_OFFSET
+        );
+      } else {
+        top = Math.max(
+          viewportPadding,
+          rect.top - DROPDOWN_OFFSET - DROPDOWN_ESTIMATE_HEIGHT
+        );
+      }
+
+      let left = rect.left;
+      const minLeft = viewportPadding;
+      const maxLeft = window.innerWidth - viewportPadding;
+      const dropdownWidth = 160;
+      left = Math.min(maxLeft - dropdownWidth, Math.max(minLeft, left));
+
+      setDropdownStyle({
+        position: 'fixed',
+        left,
+        top,
+      });
+    };
+
+    updatePosition();
+    const contentArea = document.querySelector('.content-area');
+    const onScrollOrResize = () => updatePosition();
+    window.addEventListener('resize', onScrollOrResize);
+    contentArea?.addEventListener('scroll', onScrollOrResize);
+    return () => {
+      window.removeEventListener('resize', onScrollOrResize);
+      contentArea?.removeEventListener('scroll', onScrollOrResize);
+    };
+  }, [open]);
+
+  const handleMore = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setOpen(prev => !prev);
+  };
+
+  const handleDelete = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setOpen(false);
+    onDelete(e);
+  };
+
+  return (
+    <div className="tooltip-btn-wrap" ref={wrapRef}>
+      <TooltipButton tooltip="More actions" onClick={handleMore} active={open}>
+        <More size={16} />
+      </TooltipButton>
+      {open &&
+        createPortal(
+          <div
+            ref={dropdownRef}
+            className="more-dropdown more-dropdown-portal"
+            style={dropdownStyle}
+          >
+            <div className="more-dropdown-timestamp">
+              {formatTimestamp(timestamp)}
+            </div>
+            <button className="more-dropdown-delete" onClick={handleDelete}>
+              Delete
+            </button>
+          </div>,
+          document.body
+        )}
     </div>
   );
 }
 
 function HistoryItem({ item, onReapply, onDelete, onToggleSaved, onCopyPrompt }: HistoryItemProps) {
-  const [moreOpen, setMoreOpen] = useState(false);
-  const moreRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!moreOpen) return;
-    const handleClickOutside = (e: MouseEvent) => {
-      if (moreRef.current && !moreRef.current.contains(e.target as Node)) {
-        setMoreOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [moreOpen]);
-
   const handleCopy = (e: React.MouseEvent) => {
     e.stopPropagation();
     onCopyPrompt(item.prompt);
@@ -90,14 +242,8 @@ function HistoryItem({ item, onReapply, onDelete, onToggleSaved, onCopyPrompt }:
     onToggleSaved(item.id);
   };
 
-  const handleMore = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    setMoreOpen(prev => !prev);
-  };
-
   const handleDelete = (e: React.MouseEvent) => {
     e.stopPropagation();
-    setMoreOpen(false);
     onDelete(item.id);
   };
 
@@ -110,30 +256,16 @@ function HistoryItem({ item, onReapply, onDelete, onToggleSaved, onCopyPrompt }:
       </div>
       <div className="story-actions">
         <div className="story-action-btns">
-          <TooltipButton tooltip="Copy prompt" onClick={handleCopy}>
+          <TooltipButton tooltip="Copy" onClick={handleCopy}>
             <Copy size={16} />
           </TooltipButton>
           <TooltipButton tooltip="Re-apply text" onClick={handleReapply}>
-            <RotateLeft size={16} />
+            <ArrowULeft size={16} />
           </TooltipButton>
           <TooltipButton tooltip={item.saved ? 'Unsave' : 'Save'} onClick={handleToggleSaved}>
             {item.saved ? <HeartFill size={16} /> : <Heart size={16} />}
           </TooltipButton>
-          <div className="tooltip-btn-wrap" ref={moreRef}>
-            <TooltipButton tooltip="More actions" onClick={handleMore} active={moreOpen}>
-              <ChevronsLeftRightEllipsis size={16} />
-            </TooltipButton>
-            {moreOpen && (
-              <div className="more-dropdown">
-                <div className="more-dropdown-timestamp">
-                  {formatTimestamp(item.timestamp)}
-                </div>
-                <button className="more-dropdown-delete" onClick={handleDelete}>
-                  Delete
-                </button>
-              </div>
-            )}
-          </div>
+          <MoreButton timestamp={item.timestamp} onDelete={handleDelete} />
         </div>
         <div className="story-meta">
           {item.response.length} items{categoryStr ? ` \u2022 ${categoryStr}` : ''}

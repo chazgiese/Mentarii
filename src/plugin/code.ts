@@ -833,10 +833,7 @@ async function handleSendChatMessage(msg: any): Promise<void> {
       result = await replaceSelectedTextElements(Array(selection.length).fill(aiResponse.content));
     }
 
-    // Show unified success toast if replacement was successful
     if (result) {
-      sendToastToUI('Updated text', 'success');
-      
       // Save successful result to history
       if (aiResponse.isArray && Array.isArray(aiResponse.items)) {
         const historyItem: HistoryItem = {
@@ -974,7 +971,7 @@ async function handleMessage(msg: PluginMessage): Promise<void> {
 // Initialize the plugin UI with specified dimensions and theme support
 figma.showUI(__html__, { 
   width: 400, 
-  height: 500,
+  height: 484,
   themeColors: true
 });
 
