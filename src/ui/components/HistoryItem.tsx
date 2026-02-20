@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useLayoutEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { Copy, ArrowULeft, Heart, HeartFill, More } from 'stera-icons';
+import { Copy, CheckCircleFill, ArrowULeft, Heart, HeartFill, More } from 'stera-icons';
 import { HistoryItem as HistoryItemType, CATEGORY_DISPLAY_NAMES } from '../types';
 
 interface HistoryItemProps {
@@ -227,9 +227,13 @@ function MoreButton({ timestamp, onDelete }: MoreButtonProps) {
 }
 
 function HistoryItem({ item, onReapply, onDelete, onToggleSaved, onCopyPrompt }: HistoryItemProps) {
+  const [showCopied, setShowCopied] = useState(false);
+
   const handleCopy = (e: React.MouseEvent) => {
     e.stopPropagation();
     onCopyPrompt(item.prompt);
+    setShowCopied(true);
+    setTimeout(() => setShowCopied(false), 1500);
   };
 
   const handleReapply = (e: React.MouseEvent) => {
@@ -256,8 +260,8 @@ function HistoryItem({ item, onReapply, onDelete, onToggleSaved, onCopyPrompt }:
       </div>
       <div className="story-actions">
         <div className="story-action-btns">
-          <TooltipButton tooltip="Copy" onClick={handleCopy}>
-            <Copy size={16} />
+          <TooltipButton tooltip={showCopied ? 'Copied' : 'Copy'} onClick={handleCopy}>
+            {showCopied ? <CheckCircleFill size={16} /> : <Copy size={16} />}
           </TooltipButton>
           <TooltipButton tooltip="Re-apply text" onClick={handleReapply}>
             <ArrowULeft size={16} />

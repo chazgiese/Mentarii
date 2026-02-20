@@ -289,7 +289,7 @@ body {
    ============================================================ */
 
 .category-popup {
-  background-color: var(--figma-color-bg-inverse);
+  background-color: var(--figma-color-bg);
   border-radius: 13px;
   bottom: calc(100% + 4px);
   box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.5),
@@ -459,13 +459,13 @@ body {
    ============================================================ */
 
 .tooltip {
-  background-color: var(--figma-color-bg-inverse);
+  background-color: var(--figma-color-bg);
   border-radius: 5px;
   box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.5),
     0px 3px 8px rgba(0, 0, 0, 0.35),
     inset 0px 0.5px 0px rgba(255, 255, 255, 0.08),
     inset 0px 0px 0.5px rgba(255, 255, 255, 0.3);
-  color: var(--figma-color-text-oninverse);
+  color: var(--figma-color-text);
   font-size: 11px;
   font-weight: 450;
   left: 50%;
@@ -491,7 +491,7 @@ body {
    ============================================================ */
 
 .more-dropdown {
-  background-color: var(--figma-color-bg-inverse);
+  background-color: var(--figma-color-bg);
   border-radius: 13px;
   box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.5),
     0px 3px 8px rgba(0, 0, 0, 0.35),
@@ -740,13 +740,13 @@ body {
 }
 
 .toast-success {
-  background: var(--figma-color-bg-inverse);
-  color: var(--figma-color-text-oninverse);
+  background: var(--figma-color-bg);
+  color: var(--figma-color-text);
 }
 
 .toast-error {
-  background: var(--figma-color-bg-inverse);
-  color: var(--figma-color-text-oninverse);
+  background: var(--figma-color-bg);
+  color: var(--figma-color-text);
 }
 
 .toast-critical {
